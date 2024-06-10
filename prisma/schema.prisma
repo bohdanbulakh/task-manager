@@ -31,7 +31,7 @@ model Task {
   id          String    @id @default(uuid())
   name        String
   description String
-  status      Status
+  status      Status?   @default(TO_DO)
   priority    Priority
   deadline    DateTime?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
