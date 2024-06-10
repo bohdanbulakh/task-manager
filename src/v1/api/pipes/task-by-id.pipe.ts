@@ -7,11 +7,10 @@ export class TaskByIdPipe implements PipeTransform {
 
   async transform (id: string) {
     const task = await this.taskRepository.findById(id);
-
     if (!task) {
-      throw new NotFoundException(`Task with id ${id} not found`);
+      throw new NotFoundException('Task with such id not found');
     }
 
-    return task.id;
+    return id;
   }
 }

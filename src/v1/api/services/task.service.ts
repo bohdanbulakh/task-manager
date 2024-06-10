@@ -8,7 +8,8 @@ export class TaskService {
   constructor (private taskRepository: TaskRepository) {}
 
   async getAll () {
-    return this.taskRepository.findMany();
+    const tasks = await this.taskRepository.findMany();
+    return { tasks };
   }
 
   async get (id: string) {
