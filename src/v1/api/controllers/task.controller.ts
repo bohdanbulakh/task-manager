@@ -4,8 +4,8 @@ import { CreateTaskDto } from '../dto/create-task.dto';
 import { TaskByIdPipe } from '../pipes/task-by-id.pipe';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { TaskResponse } from '../responses/task.response';
-import { TasksResponse } from '../responses/tasks.response';
+import { TaskWithCategoryResponse } from '../responses/task-with-category.response';
+import { TasksWithCategoryResponse } from '../responses/tasks-with-category.response';
 
 @ApiTags('Tasks')
 @Controller({
@@ -13,10 +13,10 @@ import { TasksResponse } from '../responses/tasks.response';
   path: 'tasks',
 })
 export class TaskController {
-  constructor (private readonly taskService: TaskService) {}
+  constructor (private taskService: TaskService) {}
 
   @ApiOperation({ summary: 'Get all tasks' })
-  @ApiOkResponse({ type: TasksResponse })
+  @ApiOkResponse({ type: TasksWithCategoryResponse })
   @Get()
   getAll () {
     return this.taskService.getAll();
@@ -27,19 +27,19 @@ export class TaskController {
     name: 'taskId',
     description: 'Id of the task',
   })
-  @ApiOkResponse({ type: TaskResponse })
+  @ApiOkResponse({ type: TaskWithCategoryResponse })
   @ApiBadRequestResponse({
     description: `
     InvalidEntityIdException:
       Task with such id not found`,
   })
   @Get(':taskId')
-  get (@Param('taskId', TaskByIdPipe) taskId: string) {
-    return this.taskService.get(taskId);
+  getById (@Param('taskId', TaskByIdPipe) taskId: string) {
+    return this.taskService.getById(taskId);
   }
 
   @ApiOperation({ summary: 'Create task' })
-  @ApiOkResponse({ type: TaskResponse })
+  @ApiOkResponse({ type: TaskWithCategoryResponse })
   @ApiBadRequestResponse({
     description: `
     InvalidBodyException: 
@@ -53,6 +53,7 @@ export class TaskController {
       Priority must be an enum
       Deadline must be a date
       CategoryId must be an UUID
+      Category with such id not found
       
       InvalidEntityIdException:
         Category with such id not found`,
@@ -67,7 +68,7 @@ export class TaskController {
     name: 'taskId',
     description: 'Id of the task',
   })
-  @ApiOkResponse({ type: TaskResponse })
+  @ApiOkResponse({ type: TaskWithCategoryResponse })
   @ApiBadRequestResponse({
     description: `
     InvalidBodyException: 
@@ -78,6 +79,7 @@ export class TaskController {
       Priority must be an enum
       Deadline must be a date
       CategoryId must be an UUID
+      Category with such id not found
       
       InvalidEntityIdException:
         Category with such id not found`,
@@ -87,7 +89,7 @@ export class TaskController {
     @Param('taskId', TaskByIdPipe) taskId: string,
     @Body() body: UpdateTaskDto,
   ) {
-    return this.taskService.update(taskId, body);
+    return this.taskService.updateById(taskId, body);
   }
 
   @ApiOperation({ summary: 'Delete task by id' })
@@ -95,7 +97,7 @@ export class TaskController {
     name: 'taskId',
     description: 'Id of the task',
   })
-  @ApiOkResponse({ type: TaskResponse })
+  @ApiOkResponse({ type: TaskWithCategoryResponse })
   @ApiBadRequestResponse({
     description: `
     InvalidEntityIdException:
