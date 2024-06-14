@@ -3,7 +3,7 @@ import { TaskRepository } from '../../database/repositories/task.repository';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { CategoryRepository } from '../../database/repositories/category.repository';
-import { InvalidEntityIdException } from '../../exceptions/invalid-entity-id.exception';
+import { InvalidEntityPropertyException } from '../../exceptions/invalid-entity-property.exception';
 
 @Injectable()
 export class TaskService {
@@ -38,7 +38,7 @@ export class TaskService {
   private async checkCategory (categoryId: string) {
     const category = await this.categoryRepository.findById(categoryId);
     if (!category) {
-      throw new InvalidEntityIdException('Category');
+      throw new InvalidEntityPropertyException('Category', 'id');
     }
   }
 }

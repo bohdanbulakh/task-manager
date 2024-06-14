@@ -1,6 +1,6 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
 import { CategoryRepository } from '../../database/repositories/category.repository';
-import { InvalidEntityIdException } from '../../exceptions/invalid-entity-id.exception';
+import { InvalidEntityPropertyException } from '../../exceptions/invalid-entity-property.exception';
 
 @Injectable()
 export class CategoryByIdPipe implements PipeTransform {
@@ -9,7 +9,7 @@ export class CategoryByIdPipe implements PipeTransform {
   async transform (id: string) {
     const category = await this.categoryRepository.findById(id);
     if (!category) {
-      throw new InvalidEntityIdException('Category');
+      throw new InvalidEntityPropertyException('Category', 'id');
     }
 
     return id;

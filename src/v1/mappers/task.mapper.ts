@@ -1,16 +1,16 @@
-import { DbTask } from '../database/entities/db-task';
 import { Injectable } from '@nestjs/common';
+import { Task } from '@prisma/client';
 
 @Injectable()
 export class TaskMapper {
-  getTask (task: DbTask) {
+  getTask (task: Task) {
     return {
       ...task,
       category: undefined,
     };
   }
 
-  getTasks (tasks: DbTask[]) {
-    return tasks.map((task: DbTask) => this.getTask(task));
+  getTasks (tasks: Task[]) {
+    return tasks.map((task: Task) => this.getTask(task));
   }
 }
