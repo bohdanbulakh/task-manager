@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { TaskService } from '../services/task.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { TaskByIdPipe } from '../pipes/task-by-id.pipe';
 import { UpdateTaskDto } from '../dto/update-task.dto';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { TaskWithCategoryResponse } from '../responses/task-with-category.response';
 import { TasksWithCategoryResponse } from '../responses/tasks-with-category.response';
+import { JwtGuard } from '../../security/guards/jwt.guard';
+import { CurrentUser } from '../decorators/user.decorator';
+import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 
 @ApiTags('Tasks')
 @Controller({
@@ -20,6 +23,17 @@ export class TaskController {
   @Get()
   getAll () {
     return this.taskService.getAll();
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
+  @ApiOperation({ summary: 'Get user tasks' })
+  @ApiOkResponse({ type: TasksWithCategoryResponse })
+  @Get('/userTasks')
+  getUserTasks (
+    @CurrentUser('id') userId: string
+  ) {
+    return this.taskService.getAll(userId);
   }
 
   @ApiOperation({ summary: 'Get task by id' })
@@ -38,6 +52,8 @@ export class TaskController {
     return this.taskService.getById(taskId);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Create task' })
   @ApiOkResponse({ type: TaskWithCategoryResponse })
   @ApiBadRequestResponse({
@@ -59,10 +75,15 @@ export class TaskController {
         Category with such id not found`,
   })
   @Post()
-  create (@Body() body: CreateTaskDto) {
-    return this.taskService.create(body);
+  create (
+    @CurrentUser('id') userId: string,
+    @Body(CategoryByIdPipe) body: CreateTaskDto,
+  ) {
+    return this.taskService.create(userId, body);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Update task by id' })
   @ApiParam({
     name: 'taskId',
@@ -87,11 +108,13 @@ export class TaskController {
   @Patch(':taskId')
   updateById (
     @Param('taskId', TaskByIdPipe) taskId: string,
-    @Body() body: UpdateTaskDto,
+    @Body(CategoryByIdPipe) body: UpdateTaskDto,
   ) {
     return this.taskService.updateById(taskId, body);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Delete task by id' })
   @ApiParam({
     name: 'taskId',

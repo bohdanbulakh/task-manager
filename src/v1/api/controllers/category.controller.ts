@@ -1,5 +1,5 @@
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 import { CategoryResponse } from '../responses/category.response';
@@ -7,6 +7,8 @@ import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
 import { CategoriesWithTasksResponse } from '../responses/categories-with-tasks.response';
 import { CategoryWithTasksResponse } from '../responses/category-with-tasks.response';
+import { CurrentUser } from '../decorators/user.decorator';
+import { JwtGuard } from '../../security/guards/jwt.guard';
 
 @ApiTags('Category')
 @Controller({
@@ -21,6 +23,17 @@ export class CategoryController {
   @Get()
   async getAll () {
     return this.categoryService.getAll();
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
+  @ApiOperation({ summary: 'Get user categories' })
+  @ApiOkResponse({ type: CategoriesWithTasksResponse })
+  @Get('/userCategories')
+  getUserCategories (
+    @CurrentUser('id') userId: string
+  ) {
+    return this.categoryService.getAll(userId);
   }
 
   @ApiOperation({ summary: 'Get category by id' })
@@ -39,6 +52,8 @@ export class CategoryController {
     return this.categoryService.getById(categoryId);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Create category' })
   @ApiOkResponse({ type: CategoryResponse })
   @ApiBadRequestResponse({
@@ -50,10 +65,15 @@ export class CategoryController {
       Description must be a string`,
   })
   @Post()
-  async create (@Body() body: CreateCategoryDto) {
-    return this.categoryService.create(body);
+  async create (
+    @CurrentUser('id') userId: string,
+    @Body() body: CreateCategoryDto
+  ) {
+    return this.categoryService.create(userId, body);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Update category by id' })
   @ApiParam({
     name: 'categoryId',
@@ -78,6 +98,8 @@ export class CategoryController {
     return this.categoryService.updateById(categoryId, body);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @ApiOperation({ summary: 'Delete category by id' })
   @ApiParam({
     name: 'categoryId',

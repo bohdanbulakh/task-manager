@@ -8,10 +8,10 @@ import { AuthModule } from './modules/auth.module';
 @Module({
   imports: [
     PrismaModule,
-    TaskModule,
-    CategoryModule,
     MappersModule,
     AuthModule,
+    CategoryModule,
+    TaskModule,
   ],
 })
 export class AppModule {}

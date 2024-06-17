@@ -5,6 +5,7 @@ import { LocalStrategy } from '../security/strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { UniqueUsernamePipe } from '../api/pipes/unique-username.pipe';
+import { JwtStrategy } from '../security/strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UniqueUsernamePipe } from '../api/pipes/unique-username.pipe';
   providers: [
     AuthService,
     LocalStrategy,
+    JwtStrategy,
     UniqueUsernamePipe,
   ],
 })

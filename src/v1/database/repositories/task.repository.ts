@@ -1,6 +1,7 @@
-import { PrismaService } from '../prisma.service';
-import { Prisma } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { CreateTaskDto } from '../../api/dto/create-task.dto';
+import { UpdateTaskDto } from '../../api/dto/update-task.dto';
 
 @Injectable()
 export class TaskRepository {
@@ -9,9 +10,10 @@ export class TaskRepository {
     category: true,
   };
 
-  async findMany () {
+  async findMany (userId?: string) {
     return this.prisma.task.findMany({
       include: this.include,
+      where: { userId },
     });
   }
 
@@ -22,11 +24,17 @@ export class TaskRepository {
     });
   }
 
-  async create (data: Prisma.TaskUncheckedCreateInput) {
-    return this.prisma.task.create({ data });
+  async create (userId: string, data: CreateTaskDto) {
+    return this.prisma.task.create({
+      data: {
+        ...data,
+        userId,
+      },
+      include: this.include,
+    });
   }
 
-  async update (id: string, data: Prisma.TaskUncheckedUpdateInput) {
+  async update (id: string, data: UpdateTaskDto) {
     return this.prisma.task.update({
       where: { id },
       include: this.include,

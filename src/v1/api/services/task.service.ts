@@ -3,7 +3,6 @@ import { TaskRepository } from '../../database/repositories/task.repository';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { CategoryRepository } from '../../database/repositories/category.repository';
-import { InvalidEntityPropertyException } from '../../exceptions/invalid-entity-property.exception';
 
 @Injectable()
 export class TaskService {
@@ -12,8 +11,8 @@ export class TaskService {
     private categoryRepository: CategoryRepository,
   ) {}
 
-  async getAll () {
-    const tasks = await this.taskRepository.findMany();
+  async getAll (userId?: string) {
+    const tasks = await this.taskRepository.findMany(userId);
     return { tasks };
   }
 
@@ -21,24 +20,15 @@ export class TaskService {
     return this.taskRepository.findById(id);
   }
 
-  async create (body: CreateTaskDto) {
-    await this.checkCategory(body.categoryId);
-    return this.taskRepository.create(body);
+  async create (userId: string, body: CreateTaskDto) {
+    return this.taskRepository.create(userId, body);
   }
 
   async updateById (id: string, body: UpdateTaskDto) {
-    await this.checkCategory(body.categoryId);
     return this.taskRepository.update(id, body);
   }
 
   async deleteById (id: string) {
     return this.taskRepository.delete(id);
-  }
-
-  private async checkCategory (categoryId: string) {
-    const category = await this.categoryRepository.findById(categoryId);
-    if (!category) {
-      throw new InvalidEntityPropertyException('Category', 'id');
-    }
   }
 }

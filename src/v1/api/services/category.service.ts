@@ -11,8 +11,8 @@ export class CategoryService {
     private taskMapper: TaskMapper,
   ) {}
 
-  async getAll () {
-    const categories = await this.categoryRepository.findMany();
+  async getAll (userId?: string) {
+    const categories = await this.categoryRepository.findMany(userId);
     return { categories: categories.map((category) => ({
       ...category,
       tasks: this.taskMapper.getTasks(category.tasks) })),
@@ -24,8 +24,8 @@ export class CategoryService {
     return { ...category, tasks: this.taskMapper.getTasks(category.tasks) };
   }
 
-  async create (body: CreateCategoryDto) {
-    return this.categoryRepository.create(body);
+  async create (userId: string, body: CreateCategoryDto) {
+    return this.categoryRepository.create(userId, body);
   }
 
   async updateById (id: string, body: UpdateCategoryDto) {

@@ -6,6 +6,5 @@ import { CategoryByIdPipe } from '../api/pipes/category-by-id.pipe';
 @Module({
   controllers: [CategoryController],
   providers: [CategoryService, CategoryByIdPipe],
-  exports: [CategoryService],
 })
 export class CategoryModule {}

@@ -2,6 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CategoryResponse {
   @ApiProperty({
+    description: 'Id of the category',
+  })
+    id: string;
+
+  @ApiProperty({
     description: 'Name of the category',
   })
     name: string;

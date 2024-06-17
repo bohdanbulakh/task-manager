@@ -3,6 +3,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class TaskResponse {
   @ApiProperty({
+    description: 'Id of the task',
+  })
+    id: string;
+
+  @ApiProperty({
     description: 'Name of the task',
   })
     name: string;
