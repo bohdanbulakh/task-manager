@@ -1,14 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { TaskService } from '../services/task.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { TaskByIdPipe } from '../pipes/task-by-id.pipe';
 import { UpdateTaskDto } from '../dto/update-task.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TaskWithCategoryResponse } from '../responses/task-with-category.response';
 import { TasksWithCategoryResponse } from '../responses/tasks-with-category.response';
 import { JwtGuard } from '../../security/guards/jwt.guard';
 import { CurrentUser } from '../decorators/user.decorator';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
+import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
 
 @ApiTags('Tasks')
 @Controller({
@@ -18,17 +19,21 @@ import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 export class TaskController {
   constructor (private taskService: TaskService) {}
 
-  @ApiOperation({ summary: 'Get all tasks' })
-  @ApiOkResponse({ type: TasksWithCategoryResponse })
+  @ApiEndpoint({
+    summary: 'Get all tasks',
+    okResponse: TasksWithCategoryResponse,
+  })
   @Get()
   getAll () {
     return this.taskService.getAll();
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Get user tasks' })
-  @ApiOkResponse({ type: TasksWithCategoryResponse })
+  @ApiEndpoint({
+    summary: 'Get user tasks',
+    guards: JwtGuard,
+    okResponse: TaskWithCategoryResponse,
+  })
   @Get('/userTasks')
   getUserTasks (
     @CurrentUser('id') userId: string
@@ -36,14 +41,14 @@ export class TaskController {
     return this.taskService.getAll(userId);
   }
 
-  @ApiOperation({ summary: 'Get task by id' })
-  @ApiParam({
-    name: 'taskId',
-    description: 'Id of the task',
-  })
-  @ApiOkResponse({ type: TaskWithCategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Get task by id',
+    params: {
+      name: 'taskId',
+      description: 'Id of the task',
+    },
+    okResponse: TaskWithCategoryResponse,
+    badRequestResponse: `
     InvalidEntityIdException:
       Task with such id not found`,
   })
@@ -53,11 +58,11 @@ export class TaskController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Create task' })
-  @ApiOkResponse({ type: TaskWithCategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Create task',
+    guards: JwtGuard,
+    okResponse: TaskWithCategoryResponse,
+    badRequestResponse: `
     InvalidBodyException: 
       Name cannot be empty
       Name must be a string
@@ -83,15 +88,15 @@ export class TaskController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Update task by id' })
-  @ApiParam({
-    name: 'taskId',
-    description: 'Id of the task',
-  })
-  @ApiOkResponse({ type: TaskWithCategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Update task by id',
+    guards: JwtGuard,
+    params: {
+      name: 'taskId',
+      description: 'Id of the task',
+    },
+    okResponse: TaskWithCategoryResponse,
+    badRequestResponse: `
     InvalidBodyException: 
       Name must be a string
       Name length must be between 1 and 20
@@ -114,15 +119,15 @@ export class TaskController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Delete task by id' })
-  @ApiParam({
-    name: 'taskId',
-    description: 'Id of the task',
-  })
-  @ApiOkResponse({ type: TaskWithCategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Delete task by id',
+    guards: JwtGuard,
+    params: {
+      name: 'taskId',
+      description: 'Id of the task',
+    },
+    okResponse: TaskWithCategoryResponse,
+    badRequestResponse: `
     InvalidEntityIdException:
       Task with such id not found`,
   })

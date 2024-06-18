@@ -1,5 +1,5 @@
-import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 import { CategoryResponse } from '../responses/category.response';
@@ -9,6 +9,7 @@ import { CategoriesWithTasksResponse } from '../responses/categories-with-tasks.
 import { CategoryWithTasksResponse } from '../responses/category-with-tasks.response';
 import { CurrentUser } from '../decorators/user.decorator';
 import { JwtGuard } from '../../security/guards/jwt.guard';
+import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
 
 @ApiTags('Category')
 @Controller({
@@ -18,17 +19,23 @@ import { JwtGuard } from '../../security/guards/jwt.guard';
 export class CategoryController {
   constructor (private categoryService: CategoryService) {}
 
-  @ApiOperation({ summary: 'Get all categories' })
-  @ApiOkResponse({ type: CategoriesWithTasksResponse })
+  @ApiEndpoint({
+    summary: 'Get all categories',
+    okResponse: CategoriesWithTasksResponse,
+  })
   @Get()
   async getAll () {
     return this.categoryService.getAll();
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Get user categories' })
-  @ApiOkResponse({ type: CategoriesWithTasksResponse })
+  @Access({
+    guards: JwtGuard,
+  })
+  @ApiEndpoint({
+    summary: 'Get user categories',
+    okResponse: CategoriesWithTasksResponse,
+  })
   @Get('/userCategories')
   getUserCategories (
     @CurrentUser('id') userId: string
@@ -36,14 +43,14 @@ export class CategoryController {
     return this.categoryService.getAll(userId);
   }
 
-  @ApiOperation({ summary: 'Get category by id' })
-  @ApiParam({
-    name: 'categoryId',
-    description: 'Id of the category',
-  })
-  @ApiOkResponse({ type: CategoryWithTasksResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Get category by id',
+    params: {
+      name: 'categoryId',
+      description: 'Id of the category',
+    },
+    okResponse: CategoryWithTasksResponse,
+    badRequestResponse: `
     InvalidEntityIdException: 
       Category with such id not found`,
   })
@@ -53,11 +60,11 @@ export class CategoryController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Create category' })
-  @ApiOkResponse({ type: CategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Create category',
+    guards: JwtGuard,
+    okResponse: CategoryResponse,
+    badRequestResponse: `
     InvalidBodyException: 
       CategoryName cannot be empty
       CategoryName must be a string
@@ -73,15 +80,15 @@ export class CategoryController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Update category by id' })
-  @ApiParam({
-    name: 'categoryId',
-    description: 'Id of the category',
-  })
-  @ApiOkResponse({ type: CategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Update category by id',
+    guards: JwtGuard,
+    params: {
+      name: 'categoryId',
+      description: 'Id of the category',
+    },
+    okResponse: CategoryResponse,
+    badRequestResponse: `
     InvalidBodyException:
       CategoryName must be a string
       CategoryName length must be between 1 and 20
@@ -99,15 +106,15 @@ export class CategoryController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @ApiOperation({ summary: 'Delete category by id' })
-  @ApiParam({
-    name: 'categoryId',
-    description: 'Id of the category',
-  })
-  @ApiOkResponse({ type: CategoryResponse })
-  @ApiBadRequestResponse({
-    description: `
+  @ApiEndpoint({
+    summary: 'Delete category by id',
+    guards: JwtGuard,
+    params: {
+      name: 'categoryId',
+      description: 'Id of the category',
+    },
+    okResponse: CategoryResponse,
+    badRequestResponse: `
     InvalidEntityIdException: 
       Category with such id not found`,
   })
