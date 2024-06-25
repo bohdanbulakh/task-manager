@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { CreateCategoryDto } from '../../api/dto/create-category.dto';
-import { UpdateCategoryDto } from '../../api/dto/update-category.dto';
+import { Repository } from '../../utils/globals';
+import { Category, Prisma } from '@prisma/client';
 
 @Injectable()
-export class CategoryRepository {
+export class CategoryRepository implements Repository<Category> {
   constructor (private prisma: PrismaService) {}
   private include = {
-    tasks: true,
+    workspace: true,
   };
 
-  async findMany (userId?: string) {
+  async findMany (where?: Prisma.CategoryWhereInput) {
     return this.prisma.category.findMany({
-      where: { userId },
+      where,
       include: this.include,
     });
   }
@@ -24,23 +24,25 @@ export class CategoryRepository {
     });
   }
 
-  async create (userId: string, data: CreateCategoryDto) {
+  async create (data: Prisma.CategoryUncheckedCreateInput) {
     return this.prisma.category.create({
-      data: {
-        ...data,
-        userId,
-      },
+      data,
+      include: this.include,
     });
   }
 
-  async update (id: string, data: UpdateCategoryDto) {
+  async updateById (id: string, data: Prisma.CategoryUpdateInput) {
     return this.prisma.category.update({
       where: { id },
       data,
+      include: this.include,
     });
   }
 
-  async delete (id: string) {
-    return this.prisma.category.delete({ where: { id } });
+  async deleteById (id: string) {
+    return this.prisma.category.delete({
+      where: { id },
+      include: this.include,
+    });
   }
 }

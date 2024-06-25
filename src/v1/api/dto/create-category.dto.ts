@@ -17,4 +17,11 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsString(validationOptionsMsg('Description must be a string'))
     description?: string;
+
+  @ApiProperty({
+    description: 'Id of the category workspace',
+  })
+  @IsNotEmpty(validationOptionsMsg('WorkspaceId cannot be empty'))
+  @IsString(validationOptionsMsg('WorkspaceId must be a string'))
+    workspaceId: string;
 }

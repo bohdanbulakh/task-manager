@@ -17,6 +17,11 @@ export class CategoryResponse {
     description: string;
 
   @ApiProperty({
+    description: 'Id of the category owner',
+  })
+    ownerId: string;
+
+  @ApiProperty({
     description: 'Date when the category was created',
   })
     createdAt: Date;

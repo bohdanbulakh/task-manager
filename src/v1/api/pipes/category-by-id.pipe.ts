@@ -6,13 +6,13 @@ import { InvalidEntityPropertyException } from '../../exceptions/invalid-entity-
 export class CategoryByIdPipe implements PipeTransform {
   constructor (private categoryRepository: CategoryRepository) {}
 
-  async transform (value: string | { categoryId?: string }) {
-    if (typeof value !== 'string' && !value.categoryId) return value;
-    const category = await this.categoryRepository.findById((typeof value === 'string' ? value : value.categoryId));
+  async transform (data: string | { categoryId?: string }) {
+    const id = typeof data === 'string' ? data : data.categoryId;
+    const category = await this.categoryRepository.findById(id);
     if (!category) {
       throw new InvalidEntityPropertyException('Category', 'id');
     }
 
-    return value;
+    return data;
   }
 }

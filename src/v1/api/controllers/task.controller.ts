@@ -4,12 +4,13 @@ import { CreateTaskDto } from '../dto/create-task.dto';
 import { TaskByIdPipe } from '../pipes/task-by-id.pipe';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { TaskWithCategoryResponse } from '../responses/task-with-category.response';
-import { TasksWithCategoryResponse } from '../responses/tasks-with-category.response';
+import { TaskExtendedResponse } from '../responses/task-extended.response';
+import { TasksExtendedResponse } from '../responses/tasks-extended.response';
 import { JwtGuard } from '../../security/guards/jwt.guard';
 import { CurrentUser } from '../decorators/user.decorator';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
+import { WorkspaceByIdPipe } from '../pipes/workspace-by-id.pipe';
 
 @ApiTags('Tasks')
 @Controller({
@@ -21,24 +22,11 @@ export class TaskController {
 
   @ApiEndpoint({
     summary: 'Get all tasks',
-    okResponse: TasksWithCategoryResponse,
+    okResponse: TasksExtendedResponse,
   })
   @Get()
   getAll () {
     return this.taskService.getAll();
-  }
-
-  @ApiBearerAuth()
-  @ApiEndpoint({
-    summary: 'Get user tasks',
-    guards: JwtGuard,
-    okResponse: TaskWithCategoryResponse,
-  })
-  @Get('/userTasks')
-  getUserTasks (
-    @CurrentUser('id') userId: string
-  ) {
-    return this.taskService.getAll(userId);
   }
 
   @ApiEndpoint({
@@ -47,7 +35,7 @@ export class TaskController {
       name: 'taskId',
       description: 'Id of the task',
     },
-    okResponse: TaskWithCategoryResponse,
+    okResponse: TaskExtendedResponse,
     badRequestResponse: `
     InvalidEntityIdException:
       Task with such id not found`,
@@ -61,7 +49,7 @@ export class TaskController {
   @ApiEndpoint({
     summary: 'Create task',
     guards: JwtGuard,
-    okResponse: TaskWithCategoryResponse,
+    okResponse: TaskExtendedResponse,
     badRequestResponse: `
     InvalidBodyException: 
       Name cannot be empty
@@ -74,15 +62,20 @@ export class TaskController {
       Priority must be an enum
       Deadline must be a date
       CategoryId must be an UUID
+
+    InvalidEntityIdException:
       Category with such id not found
-      
-      InvalidEntityIdException:
-        Category with such id not found`,
+
+    UnauthorizedException:
+      Unauthorized`,
   })
   @Post()
   create (
     @CurrentUser('id') userId: string,
-    @Body(CategoryByIdPipe) body: CreateTaskDto,
+    @Body(
+      CategoryByIdPipe,
+      WorkspaceByIdPipe,
+    ) body: CreateTaskDto,
   ) {
     return this.taskService.create(userId, body);
   }
@@ -95,7 +88,7 @@ export class TaskController {
       name: 'taskId',
       description: 'Id of the task',
     },
-    okResponse: TaskWithCategoryResponse,
+    okResponse: TaskExtendedResponse,
     badRequestResponse: `
     InvalidBodyException: 
       Name must be a string
@@ -105,15 +98,20 @@ export class TaskController {
       Priority must be an enum
       Deadline must be a date
       CategoryId must be an UUID
+
+    InvalidEntityIdException:
       Category with such id not found
-      
-      InvalidEntityIdException:
-        Category with such id not found`,
+
+    UnauthorizedException:
+      Unauthorized`,
   })
   @Patch(':taskId')
   updateById (
     @Param('taskId', TaskByIdPipe) taskId: string,
-    @Body(CategoryByIdPipe) body: UpdateTaskDto,
+    @Body(
+      CategoryByIdPipe,
+      WorkspaceByIdPipe,
+    ) body: UpdateTaskDto,
   ) {
     return this.taskService.updateById(taskId, body);
   }
@@ -126,10 +124,13 @@ export class TaskController {
       name: 'taskId',
       description: 'Id of the task',
     },
-    okResponse: TaskWithCategoryResponse,
+    okResponse: TaskExtendedResponse,
     badRequestResponse: `
     InvalidEntityIdException:
-      Task with such id not found`,
+      Task with such id not found
+
+    UnauthorizedException:
+      Unauthorized`,
   })
   @Delete(':taskId')
   deleteById (@Param('taskId', TaskByIdPipe) taskId: string) {

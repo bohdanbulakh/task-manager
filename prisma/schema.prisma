@@ -27,45 +27,84 @@ enum Priority {
   LOW
 }
 
+enum WorkspaceUserRoles {
+  ADMIN
+  USER
+}
+
 model User {
-  id         String     @id @default(uuid())
-  username   String     @unique
-  password   String
-  name       String
-  createdAt  DateTime   @default(now()) @map("created_at")
-  updatedAt  DateTime   @updatedAt() @map("updated_at")
-  categories Category[]
-  tasks      Task[]
+  id             String          @id @default(uuid())
+  username       String          @unique
+  password       String
+  name           String
+  workspaceUsers WorkspaceUser[]
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt() @map("updated_at")
 
   @@map("user")
 }
 
 model Task {
-  id          String    @id @default(uuid())
-  name        String
-  description String
-  status      Status?   @default(TO_DO)
-  priority    Priority
-  deadline    DateTime?
-  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  categoryId  String?   @map("category_id")
-  user        User      @relation(fields: [userId], references: [id])
-  userId      String    @map("user_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt() @map("updated_at")
+  id             String         @id @default(uuid())
+  name           String
+  description    String
+  status         Status?        @default(TO_DO)
+  priority       Priority
+  deadline       DateTime?
+  workspace      Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String         @map("workspace_id")
+  owner          WorkspaceUser  @relation("owner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        String         @map("owner_id")
+  assignedUser   WorkspaceUser? @relation("assigned", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  assignedUserId String?        @map("assigned_user_id")
+  category       Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId     String?        @map("category_id")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt() @map("updated_at")
 
   @@map("task")
 }
 
 model Category {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   name        String
   description String?
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String   @map("user_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt() @map("updated_at")
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String        @map("workspace_id")
+  owner       WorkspaceUser @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String        @map("owner_id")
   tasks       Task[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt() @map("updated_at")
 
   @@map("category")
+}
+
+model Workspace {
+  id             String          @id @default(uuid())
+  name           String
+  description    String?
+  categories     Category[]
+  tasks          Task[]
+  workspaceUsers WorkspaceUser[]
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt() @map("updated_at")
+
+  @@map("workspace")
+}
+
+model WorkspaceUser {
+  id            String             @id @default(uuid())
+  role          WorkspaceUserRoles
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String             @map("user_id")
+  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId   String             @map("workspace_id")
+  categories    Category[]
+  createdTasks  Task[]             @relation("owner")
+  assignedTasks Task[]             @relation("assigned")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt() @map("updated_at")
+
+  @@map("workspace_user")
 }

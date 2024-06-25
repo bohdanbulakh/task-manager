@@ -35,9 +35,14 @@ export class TaskResponse {
     deadline?: Date;
 
   @ApiProperty({
-    description: 'Category of the task',
+    description: 'Id of the task owner',
   })
-    categoryId: string;
+    ownerId: string;
+
+  @ApiProperty({
+    description: 'Id of the user the task is assigned to',
+  })
+    assignedUserId: string;
 
   @ApiProperty({
     description: 'Date when the task was created',

@@ -2,14 +2,14 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
-import { CategoryResponse } from '../responses/category.response';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { CategoriesWithTasksResponse } from '../responses/categories-with-tasks.response';
-import { CategoryWithTasksResponse } from '../responses/category-with-tasks.response';
+import { CategoriesExtendedResponse } from '../responses/categories-extended.response';
+import { CategoryExtendedResponse } from '../responses/category-extended.response';
 import { CurrentUser } from '../decorators/user.decorator';
 import { JwtGuard } from '../../security/guards/jwt.guard';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
+import { WorkspaceByIdPipe } from '../pipes/workspace-by-id.pipe';
 
 @ApiTags('Category')
 @Controller({
@@ -21,26 +21,11 @@ export class CategoryController {
 
   @ApiEndpoint({
     summary: 'Get all categories',
-    okResponse: CategoriesWithTasksResponse,
+    okResponse: CategoriesExtendedResponse,
   })
   @Get()
   async getAll () {
     return this.categoryService.getAll();
-  }
-
-  @ApiBearerAuth()
-  @Access({
-    guards: JwtGuard,
-  })
-  @ApiEndpoint({
-    summary: 'Get user categories',
-    okResponse: CategoriesWithTasksResponse,
-  })
-  @Get('/userCategories')
-  getUserCategories (
-    @CurrentUser('id') userId: string
-  ) {
-    return this.categoryService.getAll(userId);
   }
 
   @ApiEndpoint({
@@ -49,7 +34,7 @@ export class CategoryController {
       name: 'categoryId',
       description: 'Id of the category',
     },
-    okResponse: CategoryWithTasksResponse,
+    okResponse: CategoryExtendedResponse,
     badRequestResponse: `
     InvalidEntityIdException: 
       Category with such id not found`,
@@ -63,18 +48,21 @@ export class CategoryController {
   @ApiEndpoint({
     summary: 'Create category',
     guards: JwtGuard,
-    okResponse: CategoryResponse,
+    okResponse: CategoriesExtendedResponse,
     badRequestResponse: `
     InvalidBodyException: 
       CategoryName cannot be empty
       CategoryName must be a string
       CategoryName length must be between 1 and 20
-      Description must be a string`,
+      Description must be a string
+
+    UnauthorizedException:
+      Unauthorized`,
   })
   @Post()
   async create (
     @CurrentUser('id') userId: string,
-    @Body() body: CreateCategoryDto
+    @Body(WorkspaceByIdPipe) body: CreateCategoryDto
   ) {
     return this.categoryService.create(userId, body);
   }
@@ -87,20 +75,23 @@ export class CategoryController {
       name: 'categoryId',
       description: 'Id of the category',
     },
-    okResponse: CategoryResponse,
+    okResponse: CategoryExtendedResponse,
     badRequestResponse: `
     InvalidBodyException:
       CategoryName must be a string
       CategoryName length must be between 1 and 20
       Description must be a string
-      
+
     InvalidEntityIdException: 
-      Category with such id not found`,
+      Category with such id not found
+
+    UnauthorizedException:
+      Unauthorized`,
   })
   @Patch('/:categoryId')
   async updateById (
     @Param('categoryId', CategoryByIdPipe) categoryId: string,
-    @Body() body: UpdateCategoryDto,
+    @Body(WorkspaceByIdPipe) body: UpdateCategoryDto,
   ) {
     return this.categoryService.updateById(categoryId, body);
   }
@@ -113,10 +104,13 @@ export class CategoryController {
       name: 'categoryId',
       description: 'Id of the category',
     },
-    okResponse: CategoryResponse,
+    okResponse: CategoryExtendedResponse,
     badRequestResponse: `
     InvalidEntityIdException: 
-      Category with such id not found`,
+      Category with such id not found
+
+    UnauthorizedException:
+      Unauthorized`,
   })
   @Delete('/:categoryId')
   async deleteById (@Param('categoryId', CategoryByIdPipe) categoryId: string) {

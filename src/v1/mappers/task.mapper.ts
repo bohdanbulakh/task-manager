@@ -3,14 +3,17 @@ import { Task } from '@prisma/client';
 
 @Injectable()
 export class TaskMapper {
-  getTask (task: Task) {
-    return {
-      ...task,
-      category: undefined,
-    };
+  getTaskWithCategory (task: any) {
+    for (const prop in task) {
+      if (prop.includes('Id') && !['ownerId', 'assignedUserId'].includes(prop)) {
+        delete task[prop];
+      }
+    }
+
+    return task;
   }
 
-  getTasks (tasks: Task[]) {
-    return tasks.map((task: Task) => this.getTask(task));
+  getTasksWithCategory (tasks: Task[]) {
+    return tasks.map((task: Task) => this.getTaskWithCategory(task));
   }
 }

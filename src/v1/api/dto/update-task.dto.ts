@@ -48,4 +48,11 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsUUID(null, validationOptionsMsg('CategoryId must be an UUID'))
     categoryId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Id of the task workspace',
+  })
+  @IsOptional()
+  @IsUUID(null, validationOptionsMsg('WorkspaceId must be an UUID'))
+    workspaceId?: string;
 }

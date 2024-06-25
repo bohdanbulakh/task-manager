@@ -17,4 +17,12 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString(validationOptionsMsg('Description must be a string'))
     description?: string;
+
+
+  @ApiPropertyOptional({
+    description: 'Id of the category workspace',
+  })
+  @IsOptional()
+  @IsString(validationOptionsMsg('WorkspaceId must be a string'))
+    workspaceId: string;
 }

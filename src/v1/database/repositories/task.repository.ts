@@ -1,19 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { CreateTaskDto } from '../../api/dto/create-task.dto';
 import { UpdateTaskDto } from '../../api/dto/update-task.dto';
+import { Repository } from '../../utils/globals';
+import { Prisma, Task } from '@prisma/client';
 
 @Injectable()
-export class TaskRepository {
+export class TaskRepository implements Repository<Task> {
   constructor (private prisma: PrismaService) {}
   private include = {
     category: true,
+    workspace: true,
   };
 
-  async findMany (userId?: string) {
+  async findMany (where?: Prisma.TaskWhereInput) {
     return this.prisma.task.findMany({
+      where,
       include: this.include,
-      where: { userId },
     });
   }
 
@@ -24,17 +26,14 @@ export class TaskRepository {
     });
   }
 
-  async create (userId: string, data: CreateTaskDto) {
+  async create (data: Prisma.TaskUncheckedCreateInput) {
     return this.prisma.task.create({
-      data: {
-        ...data,
-        userId,
-      },
+      data,
       include: this.include,
     });
   }
 
-  async update (id: string, data: UpdateTaskDto) {
+  async updateById (id: string, data: UpdateTaskDto) {
     return this.prisma.task.update({
       where: { id },
       include: this.include,
@@ -42,7 +41,7 @@ export class TaskRepository {
     });
   }
 
-  async delete (id: string) {
+  async deleteById (id: string) {
     return this.prisma.task.delete({
       where: { id },
       include: this.include,

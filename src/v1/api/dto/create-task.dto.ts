@@ -48,4 +48,11 @@ export class CreateTaskDto {
   @IsOptional()
   @IsUUID(null, validationOptionsMsg('CategoryId must be an UUID'))
     categoryId?: string;
+
+  @ApiProperty({
+    description: 'Id of the task workspace',
+  })
+  @IsNotEmpty(validationOptionsMsg('WorkspaceId cannot be empty'))
+  @IsUUID(null, validationOptionsMsg('WorkspaceId must be an UUID'))
+    workspaceId: string;
 }
