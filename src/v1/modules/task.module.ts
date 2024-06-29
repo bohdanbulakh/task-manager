@@ -6,5 +6,6 @@ import { TaskByIdPipe } from '../api/pipes/task-by-id.pipe';
 @Module({
   controllers: [TaskController],
   providers: [TaskService, TaskByIdPipe],
+  exports: [TaskService],
 })
 export class TaskModule {}

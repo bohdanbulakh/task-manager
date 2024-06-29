@@ -48,7 +48,7 @@ export class CategoryController {
   @ApiEndpoint({
     summary: 'Create category',
     guards: JwtGuard,
-    okResponse: CategoriesExtendedResponse,
+    okResponse: CategoryExtendedResponse,
     badRequestResponse: `
     InvalidBodyException: 
       CategoryName cannot be empty

@@ -9,5 +9,6 @@ import { WorkspaceByIdPipe } from '../api/pipes/workspace-by-id.pipe';
     WorkspaceService,
     WorkspaceByIdPipe,
   ],
+  exports: [WorkspaceService],
 })
 export class WorkspaceModule {}

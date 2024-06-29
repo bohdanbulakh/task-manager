@@ -19,6 +19,12 @@ export class TaskRepository implements Repository<Task> {
     });
   }
 
+  async find (where?: Prisma.TaskWhereInput) {
+    return this.prisma.task.findFirst({
+      where,
+    });
+  }
+
   async findById (id: string) {
     return this.prisma.task.findFirst({
       where: { id },

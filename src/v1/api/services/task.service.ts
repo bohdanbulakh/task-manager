@@ -5,7 +5,6 @@ import { UpdateTaskDto } from '../dto/update-task.dto';
 import { Prisma } from '@prisma/client';
 import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
 import { TaskMapper } from '../../mappers/task.mapper';
-import { CategoryMapper } from '../../mappers/category.mapper';
 
 @Injectable()
 export class TaskService {
@@ -13,7 +12,6 @@ export class TaskService {
     private taskRepository: TaskRepository,
     private taskMapper: TaskMapper,
     private workspaceUserRepository: WorkspaceUserRepository,
-    private categoryMapper: CategoryMapper,
   ) {}
 
   async getAll (userId?: string) {
@@ -23,16 +21,11 @@ export class TaskService {
       },
     });
 
-    tasks.map((task: any) => {
-      task.category = this.categoryMapper.getCategory(task.category);
-    });
-
     return { tasks: this.taskMapper.getTasksWithCategory(tasks) };
   }
 
   async getById (id: string) {
     const result = await  this.taskRepository.findById(id) as any;
-    result.category = this.categoryMapper.getCategory(result.category);
     return this.taskMapper.getTaskWithCategory(result);
   }
 
@@ -42,19 +35,35 @@ export class TaskService {
       ownerId: (await this.workspaceUserRepository.findWhere({ userId })).id,
     };
     const result = await this.taskRepository.create(task) as any;
-    result.category = this.categoryMapper.getCategory(result.category);
     return this.taskMapper.getTaskWithCategory(result);
   }
 
   async updateById (id: string, body: UpdateTaskDto) {
     const result = await this.taskRepository.updateById(id, body) as any;
-    result.category = this.categoryMapper.getCategory(result.category);
     return this.taskMapper.getTaskWithCategory(result);
   }
 
   async deleteById (id: string) {
     const result = await this.taskRepository.deleteById(id) as any;
-    result.category = this.categoryMapper.getCategory(result.category);
     return this.taskMapper.getTaskWithCategory(result);
+  }
+
+  async getCreatedByUser (userId: string) {
+    const result = await this.taskRepository.findMany({
+      owner: {
+        userId,
+      },
+    });
+    return { tasks: this.taskMapper.getTasksWithCategory(result) }
+  }
+
+  async getAssignedToUser (userId: string) {
+    const result = await this.taskRepository.findMany({
+      assignedUser: {
+        userId,
+      },
+    });
+
+    return { tasks: this.taskMapper.getTasksWithCategory(result) }
   }
 }

@@ -47,4 +47,16 @@ export class CategoryService {
     const result = this.categoryRepository.deleteById(id);
     return this.categoryMapper.getCategory(result);
   }
+
+  async getUserCategories (ownerId: string) {
+    const result = await this.categoryRepository.findMany(
+      {
+        owner: {
+          userId: ownerId,
+        },
+      },
+    );
+
+    return { categories: this.categoryMapper.getCategories(result) };
+  }
 }

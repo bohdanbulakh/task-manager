@@ -2,7 +2,7 @@ import { WorkspaceRepository } from '../../database/repositories/workspace.repos
 import { CreateWorkspaceDto } from '../dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
 import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
-import { Prisma, WorkspaceUserRoles } from '@prisma/client';
+import { WorkspaceUserRoles } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -12,22 +12,9 @@ export class WorkspaceService {
     private workspaceUserRepository: WorkspaceUserRepository,
   ) {}
 
-  async findAll (userId?: string) {
+  async findAll () {
     const workspaces = await this.workspaceRepository.findMany();
     return { workspaces };
-  }
-
-  async findUserWorkspaces (userId: string, admin?: boolean) {
-    const where: Prisma.WorkspaceWhereInput = {
-      workspaceUsers: {
-        some: {
-          userId,
-          role: (admin ? WorkspaceUserRoles.ADMIN : WorkspaceUserRoles.USER),
-        },
-      },
-    };
-
-    return this.workspaceRepository.findMany(where);
   }
 
   async findById (id: string) {
@@ -59,5 +46,33 @@ export class WorkspaceService {
 
   async deleteById (id: string) {
     return this.workspaceRepository.deleteById(id);
+  }
+
+  private async getUserWorkspaces (userId: string) {
+    return this.workspaceRepository.findMany(
+      {
+        workspaceUsers: {
+          some: { userId },
+        },
+      },
+    );
+  }
+
+  private async getUserWorkspaceRole (userId: string, workspaceId: string) {
+    const workspaceUser = await this.workspaceUserRepository.findWhere({
+      userId,
+      workspaceId,
+    });
+    return workspaceUser.role;
+  }
+
+  async getUserWorkspacesWithRoles (userId: string) {
+    const workspaces = await this.getUserWorkspaces(userId) as unknown as any[];
+    const result = await Promise.all(workspaces.map(async (workspace) => {
+      workspace['role'] = await this.getUserWorkspaceRole(userId, workspace.id);
+      return workspace;
+    }));
+
+    return { workspaces: result };
   }
 }
