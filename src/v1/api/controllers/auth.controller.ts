@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LocalGuard } from '../../security/guards/local.guard';
@@ -10,6 +10,8 @@ import { RegisterResponse } from '../responses/register.response';
 import { CurrentUser } from '../decorators/user.decorator';
 import { User } from '@prisma/client';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
+import { UserResponse } from '../responses/user.response';
+import { JwtGuard } from '../../security/guards/jwt.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -36,5 +38,20 @@ export class AuthController {
     @CurrentUser() user: User,
   ) {
     return this.authService.login(user);
+  }
+
+  @ApiEndpoint({
+    summary: 'Get info about current user',
+    guards: JwtGuard,
+    okResponse: UserResponse,
+    badRequestResponse: `
+    UnauthorizedException:
+      Unauthorized`,
+  })
+  @Get('/me')
+  getCurrentUser (
+    @CurrentUser() user: User
+  ) {
+    return user;
   }
 }

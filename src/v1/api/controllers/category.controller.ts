@@ -1,4 +1,4 @@
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CategoryService } from '../services/category.service';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
@@ -44,7 +44,6 @@ export class CategoryController {
     return this.categoryService.getById(categoryId);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Create category',
     guards: JwtGuard,
@@ -67,7 +66,6 @@ export class CategoryController {
     return this.categoryService.create(userId, body);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Update category by id',
     guards: JwtGuard,
@@ -96,7 +94,6 @@ export class CategoryController {
     return this.categoryService.updateById(categoryId, body);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Delete category by id',
     guards: JwtGuard,

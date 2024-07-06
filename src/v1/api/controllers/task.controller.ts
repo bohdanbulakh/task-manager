@@ -3,7 +3,7 @@ import { TaskService } from '../services/task.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { TaskByIdPipe } from '../pipes/task-by-id.pipe';
 import { UpdateTaskDto } from '../dto/update-task.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { TaskExtendedResponse } from '../responses/task-extended.response';
 import { TasksExtendedResponse } from '../responses/tasks-extended.response';
 import { JwtGuard } from '../../security/guards/jwt.guard';
@@ -45,7 +45,6 @@ export class TaskController {
     return this.taskService.getById(taskId);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Create task',
     guards: JwtGuard,
@@ -80,7 +79,6 @@ export class TaskController {
     return this.taskService.create(userId, body);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Update task by id',
     guards: JwtGuard,
@@ -116,7 +114,6 @@ export class TaskController {
     return this.taskService.updateById(taskId, body);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Delete task by id',
     guards: JwtGuard,

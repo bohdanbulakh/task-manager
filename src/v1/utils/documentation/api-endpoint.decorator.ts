@@ -1,5 +1,6 @@
 import { applyDecorators, Param, Type, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { LocalGuard } from '../../security/guards/local.guard';
 
 type Param = {
   name: string;
@@ -32,6 +33,7 @@ export const ApiEndpoint = (
 
   if (guards) {
     guards = Array.isArray(guards) ? guards : [guards];
+    if (!guards.includes(LocalGuard)) decorators.push(ApiBearerAuth());
     decorators.push(UseGuards(...guards));
   }
 

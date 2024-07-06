@@ -2,7 +2,7 @@ import { WorkspaceService } from '../services/workspace.service';
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CreateWorkspaceDto } from '../dto/create-workspace.dto';
 import { CurrentUser } from '../decorators/user.decorator';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
 import { JwtGuard } from '../../security/guards/jwt.guard';
 import { WorkspaceByIdPipe } from '../pipes/workspace-by-id.pipe';
@@ -42,7 +42,6 @@ export class WorkspaceController {
     return this.workspaceService.findById(workspaceId);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Create new workspace',
     guards: JwtGuard,
@@ -64,7 +63,6 @@ export class WorkspaceController {
     return this.workspaceService.create(userId, workspace);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Update workspace by id',
     guards: JwtGuard,
@@ -90,7 +88,6 @@ export class WorkspaceController {
     return this.workspaceService.updateById(workspaceId, workspace);
   }
 
-  @ApiBearerAuth()
   @ApiEndpoint({
     summary: 'Delete workspace by id',
     guards: JwtGuard,
