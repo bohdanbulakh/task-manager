@@ -18,7 +18,6 @@ export class UpdateCategoryDto {
   @IsString(validationOptionsMsg('Description must be a string'))
     description?: string;
 
-
   @ApiPropertyOptional({
     description: 'Id of the category workspace',
   })

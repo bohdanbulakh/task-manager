@@ -37,10 +37,10 @@ export class TaskController {
     },
     okResponse: TaskExtendedResponse,
     badRequestResponse: `
-    InvalidEntityIdException:
+    InvalidEntityPropertyException:
       Task with such id not found`,
   })
-  @Get(':taskId')
+  @Get('/:taskId')
   getById (@Param('taskId', TaskByIdPipe) taskId: string) {
     return this.taskService.getById(taskId);
   }
@@ -62,8 +62,9 @@ export class TaskController {
       Deadline must be a date
       CategoryId must be an UUID
 
-    InvalidEntityIdException:
+    InvalidEntityPropertyException:
       Category with such id not found
+      Workspace with such id not found
 
     UnauthorizedException:
       Unauthorized`,
@@ -97,13 +98,15 @@ export class TaskController {
       Deadline must be a date
       CategoryId must be an UUID
 
-    InvalidEntityIdException:
+    InvalidEntityPropertyException:
+      Task with such id not found
       Category with such id not found
+      Workspace with such id not found
 
     UnauthorizedException:
       Unauthorized`,
   })
-  @Patch(':taskId')
+  @Patch('/:taskId')
   updateById (
     @Param('taskId', TaskByIdPipe) taskId: string,
     @Body(
@@ -123,13 +126,13 @@ export class TaskController {
     },
     okResponse: TaskExtendedResponse,
     badRequestResponse: `
-    InvalidEntityIdException:
+    InvalidEntityPropertyException:
       Task with such id not found
 
     UnauthorizedException:
       Unauthorized`,
   })
-  @Delete(':taskId')
+  @Delete('/:taskId')
   deleteById (@Param('taskId', TaskByIdPipe) taskId: string) {
     return this.taskService.deleteById(taskId);
   }

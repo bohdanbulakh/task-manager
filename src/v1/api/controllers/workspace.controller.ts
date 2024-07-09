@@ -50,7 +50,7 @@ export class WorkspaceController {
     guards: JwtGuard,
     okResponse: WorkspaceResponse,
     badRequestResponse: `
-    InvalidBodyException
+    InvalidBodyException:
       Workspace name cannot be empty
       Workspace name must be a string
       Description must be a string
@@ -75,12 +75,12 @@ export class WorkspaceController {
     },
     okResponse: WorkspaceResponse,
     badRequestResponse: `
-    InvalidBodyException
+    InvalidBodyException:
       Workspace name cannot be empty
       Workspace name must be a string
       Description must be a string
 
-    InvalidEntityIdException:
+    InvalidEntityPropertyException:
       Workspace with such id not found
 
     UnauthorizedException:
@@ -103,7 +103,7 @@ export class WorkspaceController {
     },
     okResponse: WorkspaceResponse,
     badRequestResponse: `
-    InvalidEntityIdException:
+    InvalidEntityPropertyException:
       Workspace with such id not found
 
     UnauthorizedException:
@@ -165,7 +165,7 @@ export class WorkspaceController {
     body: UpdateUserRoleDto,
     okResponse: WorkspaceWithUserRoleResponse,
     badRequestResponse: `
-    InvalidEntityPropertyException
+    InvalidEntityPropertyException:
       Workspace with such id not found
       User with such id not found
       Workspace with such user is not found
@@ -197,7 +197,7 @@ export class WorkspaceController {
     ],
     okResponse: WorkspaceWithUserRoleResponse,
     badRequestResponse: `
-    InvalidEntityPropertyException
+    InvalidEntityPropertyException:
       Workspace with such id not found
       User with such id not found
       Workspace with such user is not found

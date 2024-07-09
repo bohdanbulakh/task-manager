@@ -21,6 +21,14 @@ export class AuthController {
   @ApiEndpoint({
     summary: 'Sign up user',
     okResponse: RegisterResponse,
+    badRequestResponse: `
+    InvalidBodyException:
+      Username cannot be empty
+      Username must be a string
+      Password cannot be empty
+      Password must be a string
+      Name cannot be empty
+      Name must be a string`,
   })
   @Post('/register')
   register (@Body(UniqueUsernamePipe) body: RegisterDto) {
@@ -30,8 +38,14 @@ export class AuthController {
   @ApiEndpoint({
     summary: 'Sign in user',
     guards: LocalGuard,
-    body: LoginDto,
     okResponse: AccessTokenResponse,
+    body: LoginDto,
+    badRequestResponse: `
+    InvalidBodyException:
+      Username cannot be empty
+      Username must be a string
+      Password cannot be empty
+      Password must be a string`,
   })
   @Post('/login')
   login (

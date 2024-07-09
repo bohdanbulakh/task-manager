@@ -36,7 +36,7 @@ export class CategoryController {
     },
     okResponse: CategoryExtendedResponse,
     badRequestResponse: `
-    InvalidEntityIdException: 
+    InvalidEntityPropertyException: 
       Category with such id not found`,
   })
   @Get('/:categoryId')
@@ -54,6 +54,9 @@ export class CategoryController {
       CategoryName must be a string
       CategoryName length must be between 1 and 20
       Description must be a string
+
+    InvalidEntityPropertyException:
+      Workspace with such id not found
 
     UnauthorizedException:
       Unauthorized`,
@@ -80,8 +83,9 @@ export class CategoryController {
       CategoryName length must be between 1 and 20
       Description must be a string
 
-    InvalidEntityIdException: 
+    InvalidEntityPropertyException:
       Category with such id not found
+      Workspace with such id not found
 
     UnauthorizedException:
       Unauthorized`,
@@ -103,7 +107,7 @@ export class CategoryController {
     },
     okResponse: CategoryExtendedResponse,
     badRequestResponse: `
-    InvalidEntityIdException: 
+    InvalidEntityPropertyException:
       Category with such id not found
 
     UnauthorizedException:
