@@ -4,13 +4,17 @@ import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
 import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
 import { WorkspaceUserRoles } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
+import { EntityAlreadyExistsException } from '../../exceptions/entity-already-exists.exception';
+import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
+import { InvalidEntityPropertyException } from '../../exceptions/invalid-entity-property.exception';
 
 @Injectable()
 export class WorkspaceService {
   constructor (
     private workspaceRepository: WorkspaceRepository,
     private workspaceUserRepository: WorkspaceUserRepository,
-  ) {}
+  ) {
+  }
 
   async findAll () {
     const workspaces = await this.workspaceRepository.findMany();
@@ -25,16 +29,8 @@ export class WorkspaceService {
     const workspace = await this.workspaceRepository.create(data);
     await this.workspaceUserRepository.create({
       role: WorkspaceUserRoles.ADMIN,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
-      workspace: {
-        connect: {
-          id: workspace.id,
-        },
-      },
+      userId,
+      workspaceId: workspace.id,
     });
 
     return workspace;
@@ -67,12 +63,75 @@ export class WorkspaceService {
   }
 
   async getUserWorkspacesWithRoles (userId: string) {
-    const workspaces = await this.getUserWorkspaces(userId) as unknown as any[];
+    const workspaces = await this.getUserWorkspaces(userId);
     const result = await Promise.all(workspaces.map(async (workspace) => {
       workspace['role'] = await this.getUserWorkspaceRole(userId, workspace.id);
       return workspace;
     }));
 
     return { workspaces: result };
+  }
+
+  private async checkWorkspaceUser (userId: string, workspaceId: string) {
+    return !!await this.workspaceUserRepository.findWhere({
+      userId,
+      workspaceId,
+    });
+  }
+
+  async joinWorkspace (userId: string, workspaceId: string) {
+    if (await this.checkWorkspaceUser(userId, workspaceId)) {
+      throw new EntityAlreadyExistsException('Workspace', 'user');
+    }
+
+    const workspaceUser = await this.workspaceUserRepository.create({
+      userId,
+      workspaceId,
+      role: WorkspaceUserRoles.USER,
+    }, { workspace: true });
+
+    return {
+      ...workspaceUser.workspace,
+      role: workspaceUser.role,
+    };
+  }
+
+  async changeUserRole (userId: string, workspaceId: string, data: UpdateUserRoleDto) {
+    if (!await this.checkWorkspaceUser(userId, workspaceId)) {
+      throw new InvalidEntityPropertyException('Workspace', 'user');
+    }
+
+    const workspaceUser = await this.workspaceUserRepository.updateUniqueWhere(
+      {
+        userId,
+        workspaceId,
+      },
+      data,
+      { workspace: true },
+    );
+
+    return {
+      ...workspaceUser.workspace,
+      role: workspaceUser.role,
+    };
+  }
+
+  async leaveWorkspace (userId: string, workspaceId: string) {
+    if (!await this.checkWorkspaceUser(userId, workspaceId)) {
+      throw new InvalidEntityPropertyException('Workspace', 'user');
+    }
+
+    const workspaceUser = await this.workspaceUserRepository.deleteUniqueWhere(
+      {
+        userId,
+        workspaceId,
+      },
+      { workspace: true },
+    );
+
+    return {
+      ...workspaceUser.workspace,
+      role: workspaceUser.role,
+    };
   }
 }

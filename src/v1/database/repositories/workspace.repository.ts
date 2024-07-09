@@ -23,10 +23,11 @@ export class WorkspaceRepository implements Repository<Workspace> {
     return this.prisma.workspace.create({ data });
   }
 
-  async updateById (id: string, data: Prisma.WorkspaceUpdateInput) {
+  async updateById (id: string, data: Prisma.WorkspaceUpdateInput, include?: Prisma.WorkspaceInclude) {
     return this.prisma.workspace.update({
       where: { id },
       data,
+      include,
     });
   }
 

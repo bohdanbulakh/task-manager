@@ -23,9 +23,10 @@ export class WorkspaceUserRepository implements Repository<WorkspaceUser> {
     });
   }
 
-  async create (data: Prisma.WorkspaceUserCreateInput) {
+  async create (data: Prisma.WorkspaceUserUncheckedCreateInput, include?: Prisma.WorkspaceUserInclude) {
     return this.prisma.workspaceUser.create({
       data,
+      include,
     });
   }
 
@@ -36,9 +37,36 @@ export class WorkspaceUserRepository implements Repository<WorkspaceUser> {
     });
   }
 
+  async updateUniqueWhere (
+    where: Prisma.WorkspaceUserUserIdWorkspaceIdCompoundUniqueInput,
+    data: Prisma.WorkspaceUserUpdateInput,
+    include?: Prisma.WorkspaceUserInclude
+  ) {
+    return this.prisma.workspaceUser.update({
+      where: {
+        userId_workspaceId: where,
+      },
+      data,
+      include,
+    });
+  }
+
   async deleteById (id: string) {
     return this.prisma.workspaceUser.delete({
       where: { id },
     });
   }
+
+  async deleteUniqueWhere (
+    where: Prisma.WorkspaceUserUserIdWorkspaceIdCompoundUniqueInput,
+    include?: Prisma.WorkspaceUserInclude
+  ) {
+    return this.prisma.workspaceUser.delete({
+      where: {
+        userId_workspaceId: where,
+      },
+      include,
+    });
+  }
+
 }
