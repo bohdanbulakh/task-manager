@@ -5,6 +5,7 @@ import { UpdateTaskDto } from '../dto/update-task.dto';
 import { Prisma } from '@prisma/client';
 import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
 import { TaskMapper } from '../../mappers/task.mapper';
+import { WorkspaceService } from './workspace.service';
 
 @Injectable()
 export class TaskService {
@@ -12,6 +13,7 @@ export class TaskService {
     private taskRepository: TaskRepository,
     private taskMapper: TaskMapper,
     private workspaceUserRepository: WorkspaceUserRepository,
+    private workspaceService: WorkspaceService,
   ) {}
 
   async getAll (userId?: string) {
@@ -25,26 +27,45 @@ export class TaskService {
   }
 
   async getById (id: string) {
-    const result = await  this.taskRepository.findById(id) as any;
+    const result = await  this.taskRepository.findById(id);
     return this.taskMapper.getTaskWithCategory(result);
   }
 
   async create (userId: string, body: CreateTaskDto) {
+    await this.workspaceService.userHasWorkspace(userId, body.workspaceId);
+    await this.workspaceService.userHasWorkspace(body.assignedUserId, body.workspaceId);
+
     const task: Prisma.TaskUncheckedCreateInput = {
       ...body,
-      ownerId: (await this.workspaceUserRepository.findWhere({ userId })).id,
+      ownerId: (await this.workspaceUserRepository.findWhere({
+        workspaceId: body.workspaceId,
+        userId,
+      })).id,
+      assignedUserId: body.assignedUserId ? (await this.workspaceUserRepository.findWhere({
+        workspaceId: body.workspaceId,
+        userId: body.assignedUserId,
+      })).id : null,
     };
-    const result = await this.taskRepository.create(task) as any;
+    const result = await this.taskRepository.create(task);
     return this.taskMapper.getTaskWithCategory(result);
   }
 
   async updateById (id: string, body: UpdateTaskDto) {
-    const result = await this.taskRepository.updateById(id, body) as any;
+    if (body.assignedUserId) {
+      await this.workspaceService.userHasWorkspace(body.assignedUserId, body.workspaceId);
+    }
+    const result = await this.taskRepository.updateById(id, {
+      ...body,
+      assignedUserId: body.assignedUserId ? (await this.workspaceUserRepository.findWhere({
+        workspaceId: body.workspaceId,
+        userId: body.assignedUserId,
+      })).id : null,
+    });
     return this.taskMapper.getTaskWithCategory(result);
   }
 
   async deleteById (id: string) {
-    const result = await this.taskRepository.deleteById(id) as any;
+    const result = await this.taskRepository.deleteById(id);
     return this.taskMapper.getTaskWithCategory(result);
   }
 
@@ -54,7 +75,7 @@ export class TaskService {
         userId,
       },
     });
-    return { tasks: this.taskMapper.getTasksWithCategory(result) }
+    return { tasks: this.taskMapper.getTasksWithCategory(result) };
   }
 
   async getAssignedToUser (userId: string) {
@@ -64,6 +85,6 @@ export class TaskService {
       },
     });
 
-    return { tasks: this.taskMapper.getTasksWithCategory(result) }
+    return { tasks: this.taskMapper.getTasksWithCategory(result) };
   }
 }

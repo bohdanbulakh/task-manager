@@ -79,6 +79,12 @@ export class WorkspaceService {
     });
   }
 
+  async userHasWorkspace (userId: string, workspaceId: string) {
+    if (!workspaceId && userId || !await this.checkWorkspaceUser(userId, workspaceId)) {
+      throw new InvalidEntityPropertyException('Workspace', 'user');
+    }
+  }
+
   async joinWorkspace (userId: string, workspaceId: string) {
     if (await this.checkWorkspaceUser(userId, workspaceId)) {
       throw new EntityAlreadyExistsException('Workspace', 'user');
@@ -97,9 +103,7 @@ export class WorkspaceService {
   }
 
   async changeUserRole (userId: string, workspaceId: string, data: UpdateUserRoleDto) {
-    if (!await this.checkWorkspaceUser(userId, workspaceId)) {
-      throw new InvalidEntityPropertyException('Workspace', 'user');
-    }
+    await this.userHasWorkspace(userId, workspaceId);
 
     const workspaceUser = await this.workspaceUserRepository.updateUniqueWhere(
       {
@@ -117,9 +121,7 @@ export class WorkspaceService {
   }
 
   async leaveWorkspace (userId: string, workspaceId: string) {
-    if (!await this.checkWorkspaceUser(userId, workspaceId)) {
-      throw new InvalidEntityPropertyException('Workspace', 'user');
-    }
+    await this.userHasWorkspace(userId, workspaceId);
 
     const workspaceUser = await this.workspaceUserRepository.deleteUniqueWhere(
       {

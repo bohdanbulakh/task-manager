@@ -4,7 +4,7 @@ import { CategoryMapper } from './category.mapper';
 
 @Injectable()
 export class TaskMapper {
-  constructor(private categoryMapper: CategoryMapper) {}
+  constructor (private categoryMapper: CategoryMapper) {}
   getTaskWithCategory (task: any) {
     for (const prop in task) {
       if (prop.includes('Id') && !['ownerId', 'assignedUserId'].includes(prop)) {

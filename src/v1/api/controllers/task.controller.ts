@@ -11,6 +11,7 @@ import { CurrentUser } from '../decorators/user.decorator';
 import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
 import { WorkspaceByIdPipe } from '../pipes/workspace-by-id.pipe';
+import { UserByIdPipe } from '../pipes/user-by-id.pipe';
 
 @ApiTags('Tasks')
 @Controller({
@@ -65,6 +66,8 @@ export class TaskController {
     InvalidEntityPropertyException:
       Category with such id not found
       Workspace with such id not found
+      Workspace with such user not found
+      User with such id not found
 
     UnauthorizedException:
       Unauthorized`,
@@ -76,8 +79,12 @@ export class TaskController {
       CategoryByIdPipe,
       WorkspaceByIdPipe,
     ) body: CreateTaskDto,
+    @Body('assignedUserId', UserByIdPipe) assignedUserId?: string,
   ) {
-    return this.taskService.create(userId, body);
+    return this.taskService.create(userId, {
+      ...body,
+      assignedUserId,
+    });
   }
 
   @ApiEndpoint({
@@ -102,6 +109,8 @@ export class TaskController {
       Task with such id not found
       Category with such id not found
       Workspace with such id not found
+      Workspace with such user not found
+      User with such id not found
 
     UnauthorizedException:
       Unauthorized`,
@@ -113,8 +122,12 @@ export class TaskController {
       CategoryByIdPipe,
       WorkspaceByIdPipe,
     ) body: UpdateTaskDto,
+    @Body('assignedUserId', UserByIdPipe) assignedUserId?: string,
   ) {
-    return this.taskService.updateById(taskId, body);
+    return this.taskService.updateById(taskId, {
+      ...body,
+      assignedUserId,
+    });
   }
 
   @ApiEndpoint({

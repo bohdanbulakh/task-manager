@@ -55,4 +55,11 @@ export class CreateTaskDto {
   @IsNotEmpty(validationOptionsMsg('WorkspaceId cannot be empty'))
   @IsUUID(null, validationOptionsMsg('WorkspaceId must be an UUID'))
     workspaceId: string;
+
+  @ApiPropertyOptional({
+    description: 'Id of the user the task is assigned to',
+  })
+  @IsOptional()
+  @IsString(validationOptionsMsg('AssignedUserId must be a string'))
+    assignedUserId?: string;
 }
