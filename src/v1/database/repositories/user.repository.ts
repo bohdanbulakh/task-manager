@@ -7,26 +7,35 @@ import { Repository } from '../../utils/globals';
 export class UserRepository implements Repository<User> {
   constructor (private prisma: PrismaService) {}
 
-  async findMany () {
-    return this.prisma.user.findMany();
+  async findMany (include?: Prisma.UserInclude) {
+    return this.prisma.user.findMany({
+      include,
+    });
   }
 
-  async findById (id: string) {
-    return this.prisma.user.findFirst({ where: { id } });
+  async findById (id: string, include?:Prisma.UserInclude) {
+    return this.prisma.user.findFirst({
+      where: { id },
+      include,
+    });
   }
 
-  async findWhere (where: Prisma.UserWhereInput) {
-    return this.prisma.user.findFirst({ where });
+  async findWhere (where: Prisma.UserWhereInput, include?:Prisma.UserInclude) {
+    return this.prisma.user.findFirst({
+      where,
+      include,
+    });
   }
 
   async create (data: Prisma.UserUncheckedCreateInput) {
     return this.prisma.user.create({ data });
   }
 
-  async updateById (id: string, data: Prisma.UserUncheckedUpdateInput) {
+  async updateById (id: string, data: Prisma.UserUncheckedUpdateInput, include?:Prisma.UserInclude) {
     return this.prisma.user.update({
       where: { id },
       data,
+      include,
     });
   }
 

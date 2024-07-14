@@ -4,6 +4,10 @@ export function validationOptionsMsg (message: string, each?: boolean): Validati
   return { message, each };
 }
 
+export function makeArray (value: any | any[]) {
+  return Array.isArray(value) ? value : [value];
+}
+
 export interface Repository<Entity=object> {
   findMany(): Promise<Entity[]>;
   findById(id: string): Promise<Entity>;

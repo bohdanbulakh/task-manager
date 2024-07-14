@@ -1,6 +1,7 @@
 import { applyDecorators, Param, Type, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { LocalGuard } from '../../security/guards/local.guard';
+import { makeArray } from '../globals';
 
 type Param = {
   name: string;
@@ -11,6 +12,7 @@ type ApiEndpointParams = {
   summary: string;
   params?: Param | Param[];
   guards?: any | any[];
+  authType?: any | any [];
   body?: Type<object>;
   okResponse: Type<object>;
   badRequestResponse?: string;
@@ -24,6 +26,7 @@ export const ApiEndpoint = (
     body,
     badRequestResponse,
     params,
+    authType = ApiBearerAuth,
   }: ApiEndpointParams
 ) => {
   const decorators = [
@@ -32,8 +35,12 @@ export const ApiEndpoint = (
   ];
 
   if (guards) {
-    guards = Array.isArray(guards) ? guards : [guards];
-    if (!guards.includes(LocalGuard)) decorators.push(ApiBearerAuth());
+    guards = makeArray(guards);
+    if (!guards.includes(LocalGuard)) {
+      decorators.push(...(makeArray(authType).map(
+        (authDecorator: any) => authDecorator())
+      ));
+    }
     decorators.push(UseGuards(...guards));
   }
 
@@ -44,8 +51,7 @@ export const ApiEndpoint = (
   }));
 
   if (params) {
-    params = (!Array.isArray(params)) ? [params] : params;
-    decorators.push(...params.map((param) => ApiParam(param)));
+    decorators.push(...makeArray(params).map((param) => ApiParam(param)));
   }
 
   return applyDecorators(...decorators);

@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LocalGuard } from '../../security/guards/local.guard';
 import { RegisterDto } from '../dto/register.dto';
@@ -12,6 +12,9 @@ import { User } from '@prisma/client';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
 import { UserResponse } from '../responses/user.response';
 import { JwtGuard } from '../../security/guards/jwt.guard';
+import { RefreshGuard } from '../../security/guards/refresh.guard';
+import { Response } from 'express';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -37,7 +40,7 @@ export class AuthController {
 
   @ApiEndpoint({
     summary: 'Sign in user',
-    guards: LocalGuard,
+    guards: [LocalGuard, ThrottlerGuard],
     okResponse: AccessTokenResponse,
     body: LoginDto,
     badRequestResponse: `
@@ -45,13 +48,41 @@ export class AuthController {
       Username cannot be empty
       Username must be a string
       Password cannot be empty
-      Password must be a string`,
+      Password must be a string
+
+    ThrottlerException:
+      Too Many Requests`,
   })
   @Post('/login')
-  login (
+  async login (
     @CurrentUser() user: User,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.login(user);
+    const { refreshToken, accessToken } = await this.authService.getTokens(user);
+    response.cookie('refreshToken', refreshToken);
+    return { accessToken };
+  }
+
+  @ApiEndpoint({
+    summary: 'Refresh jwt access token',
+    guards: [RefreshGuard, ThrottlerGuard],
+    authType: ApiCookieAuth,
+    okResponse: AccessTokenResponse,
+    badRequestResponse: `
+    UnauthorizedException:
+      Unauthorized
+
+    ThrottlerException:
+      Too Many Requests`,
+  })
+  @Post('/refresh')
+  async refresh (
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) response: Response
+  ) {
+    const { refreshToken, accessToken } = await this.authService.getTokens(user);
+    response.cookie('refreshToken', refreshToken);
+    return { accessToken };
   }
 
   @ApiEndpoint({
