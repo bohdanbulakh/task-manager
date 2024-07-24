@@ -8,6 +8,8 @@ export class CategoryByIdPipe implements PipeTransform {
 
   async transform (data: string | { categoryId?: string }) {
     const id = typeof data === 'string' ? data : data.categoryId;
+    if (!id) return data;
+
     const category = await this.categoryRepository.findById(id);
     if (!category) {
       throw new InvalidEntityPropertyException('Category', 'id');

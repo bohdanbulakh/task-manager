@@ -19,4 +19,30 @@ export class TaskMapper {
   getTasksWithCategory (tasks: Task[]) {
     return tasks.map((task: Task) => this.getTaskWithCategory(task));
   }
+
+  getTasksUserIds (tasks: (Task & {
+    owner: {
+      userId: string;
+    }
+    assignedUser?: {
+      userId: string;
+    },
+  })[]) {
+    return tasks.map(this.getTaskUserIds);
+  }
+
+  getTaskUserIds (data: Task & {
+    owner: {
+      userId: string;
+    }
+    assignedUser?: {
+      userId: string;
+    },
+  }) {
+    data.assignedUserId = data.assignedUser?.userId;
+    data.ownerId = data.owner.userId;
+    delete data.assignedUser;
+    delete data.owner;
+    return data;
+  }
 }

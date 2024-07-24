@@ -6,11 +6,15 @@ import { MappersModule } from './modules/mappers.module';
 import { AuthModule } from './modules/auth.module';
 import { WorkspaceModule } from './modules/workspace.module';
 import { UserModule } from './modules/user.module';
+import { PermissionsModule } from './modules/permissions.module';
+import { PipesModule } from './modules/pipes.module';
 
 @Module({
   imports: [
     PrismaModule,
     MappersModule,
+    PermissionsModule,
+    PipesModule,
     AuthModule,
     UserModule,
     WorkspaceModule,

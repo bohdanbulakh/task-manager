@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { WorkspaceUserRoles } from '@prisma/client';
+import { RoleName } from '@prisma/client';
 import { IsEnum, IsOptional } from 'class-validator';
 import { validationOptionsMsg } from '../../utils/globals';
 
@@ -8,6 +8,6 @@ export class UpdateUserRoleDto {
     description: 'Role of the user in a workspace',
   })
   @IsOptional()
-  @IsEnum(WorkspaceUserRoles, validationOptionsMsg('Role must be an enum'))
-    role?: WorkspaceUserRoles;
+  @IsEnum(RoleName, validationOptionsMsg('Role must be an enum'))
+    role?: RoleName;
 }

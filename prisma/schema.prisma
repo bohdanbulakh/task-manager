@@ -27,7 +27,7 @@ enum Priority {
   LOW
 }
 
-enum WorkspaceUserRoles {
+enum RoleName {
   ADMIN
   USER
 }
@@ -104,18 +104,41 @@ model Workspace {
 }
 
 model WorkspaceUser {
-  id            String             @id @default(uuid())
-  role          WorkspaceUserRoles
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String             @map("user_id")
-  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  workspaceId   String             @map("workspace_id")
-  categories    Category[]
-  createdTasks  Task[]             @relation("owner")
-  assignedTasks Task[]             @relation("assigned")
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt() @map("updated_at")
+  id                String             @id @default(uuid())
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String             @map("user_id")
+  workspace         Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId       String             @map("workspace_id")
+  categories        Category[]
+  createdTasks      Task[]             @relation("owner")
+  assignedTasks     Task[]             @relation("assigned")
+  workspaceUserRole WorkspaceUserRole?
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt() @map("updated_at")
 
   @@unique([userId, workspaceId])
   @@map("workspace_user")
+}
+
+model WorkspaceUserRole {
+  workspaceUser   WorkspaceUser @relation(fields: [workspaceUserId], references: [id], onDelete: Cascade)
+  workspaceUserId String        @id @map("workspace_user_id")
+  role            RoleName
+  permissions     Permission[]
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt() @map("updated_at")
+
+  @@map("workspace_user_role")
+}
+
+model Permission {
+  id                  String            @id @default(uuid())
+  action              String
+  workspaceUserRole   WorkspaceUserRole @relation(fields: [workspaceUserRoleId], references: [workspaceUserId], onDelete: Cascade)
+  workspaceUserRoleId String            @map("workspace_user_role_id")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt() @map("updated_at")
+
+  @@unique([action, workspaceUserRoleId])
+  @@map("permission")
 }

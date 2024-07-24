@@ -12,6 +12,8 @@ import { CategoryByIdPipe } from '../pipes/category-by-id.pipe';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
 import { WorkspaceByIdPipe } from '../pipes/workspace-by-id.pipe';
 import { UserByIdPipe } from '../pipes/user-by-id.pipe';
+import { Permissions } from '../../security/permissions';
+import { WorkspaceWithUserPipe } from '../pipes/workspace-with-user.pipe';
 
 @ApiTags('Tasks')
 @Controller({
@@ -74,12 +76,12 @@ export class TaskController {
   })
   @Post()
   create (
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id', WorkspaceWithUserPipe) userId: string,
     @Body(
       CategoryByIdPipe,
       WorkspaceByIdPipe,
     ) body: CreateTaskDto,
-    @Body('assignedUserId', UserByIdPipe) assignedUserId?: string,
+    @Body('assignedUserId', UserByIdPipe, WorkspaceWithUserPipe) assignedUserId?: string,
   ) {
     return this.taskService.create(userId, {
       ...body,
@@ -89,7 +91,7 @@ export class TaskController {
 
   @ApiEndpoint({
     summary: 'Update task by id',
-    guards: JwtGuard,
+    permissions: Permissions.TASKS_$TASKID_UPDATE,
     params: {
       name: 'taskId',
       description: 'Id of the task',
@@ -113,7 +115,10 @@ export class TaskController {
       User with such id not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Patch('/:taskId')
   updateById (
@@ -122,7 +127,7 @@ export class TaskController {
       CategoryByIdPipe,
       WorkspaceByIdPipe,
     ) body: UpdateTaskDto,
-    @Body('assignedUserId', UserByIdPipe) assignedUserId?: string,
+    @Body('assignedUserId', UserByIdPipe, WorkspaceWithUserPipe) assignedUserId?: string,
   ) {
     return this.taskService.updateById(taskId, {
       ...body,
@@ -132,7 +137,7 @@ export class TaskController {
 
   @ApiEndpoint({
     summary: 'Delete task by id',
-    guards: JwtGuard,
+    permissions: Permissions.TASKS_$TASKID_DELETE,
     params: {
       name: 'taskId',
       description: 'Id of the task',
@@ -143,7 +148,10 @@ export class TaskController {
       Task with such id not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Delete('/:taskId')
   deleteById (@Param('taskId', TaskByIdPipe) taskId: string) {

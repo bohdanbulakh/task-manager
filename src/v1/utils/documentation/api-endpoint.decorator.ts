@@ -2,6 +2,10 @@ import { applyDecorators, Param, Type, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { LocalGuard } from '../../security/guards/local.guard';
 import { makeArray } from '../globals';
+import { Permissions } from '../../security/permissions';
+import { JwtGuard } from '../../security/guards/jwt.guard';
+import { PermissionGuard } from '../../security/guards/permission.guard';
+import { SetPermissions } from '../../security/decorators/permissions.decorator';
 
 type Param = {
   name: string;
@@ -12,6 +16,7 @@ type ApiEndpointParams = {
   summary: string;
   params?: Param | Param[];
   guards?: any | any[];
+  permissions?: Permissions | Permissions[],
   authType?: any | any [];
   body?: Type<object>;
   okResponse: Type<object>;
@@ -23,6 +28,7 @@ export const ApiEndpoint = (
     summary,
     okResponse,
     guards,
+    permissions,
     body,
     badRequestResponse,
     params,
@@ -42,6 +48,13 @@ export const ApiEndpoint = (
       ));
     }
     decorators.push(UseGuards(...guards));
+  }
+
+  if (permissions) {
+    decorators.push(
+      UseGuards(JwtGuard, PermissionGuard),
+      applyDecorators(SetPermissions(permissions), ApiBearerAuth())
+    );
   }
 
   if (body) decorators.push(ApiBody({ type: body }));

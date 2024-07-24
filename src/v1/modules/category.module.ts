@@ -1,11 +1,23 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { CategoryController } from '../api/controllers/category.controller';
 import { CategoryService } from '../api/services/category.service';
-import { CategoryByIdPipe } from '../api/pipes/category-by-id.pipe';
+import { PermissionsModule } from './permissions.module';
+import { WorkspaceIdMiddleware } from '../api/middleware/workspace-id-middleware.service';
+import { WorkspaceModule } from './workspace.module';
 
 @Module({
+  imports: [
+    PermissionsModule,
+    WorkspaceModule,
+  ],
   controllers: [CategoryController],
-  providers: [CategoryService, CategoryByIdPipe],
+  providers: [CategoryService],
   exports: [CategoryService],
 })
-export class CategoryModule {}
+export class CategoryModule implements NestModule {
+  configure (consumer: MiddlewareConsumer) {
+    consumer
+      .apply(WorkspaceIdMiddleware)
+      .forRoutes(CategoryController);
+  }
+}

@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from '../../database/repositories/category.repository';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { Prisma } from '@prisma/client';
-import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
+import { Prisma, RoleName } from '@prisma/client';
 import { CategoryMapper } from '../../mappers/category.mapper';
+import { PermissionGroup, PermissionsService } from './permissions.service';
+import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
 
 @Injectable()
 export class CategoryService {
   constructor (
     private categoryRepository: CategoryRepository,
     private categoryMapper: CategoryMapper,
+    private permissionsService: PermissionsService,
     private workspaceUserRepository: WorkspaceUserRepository,
   ) {}
 
@@ -27,14 +29,44 @@ export class CategoryService {
     return this.categoryMapper.getCategory(category);
   }
 
-  async create (userId: string, { workspaceId, ...body }: CreateCategoryDto) {
-    const category: Prisma.CategoryUncheckedCreateInput = {
+  async create (ownerId: string, { workspaceId, ...body }: CreateCategoryDto) {
+    const category: Prisma.CategoryCreateInput = {
       ...body,
-      workspaceId,
-      ownerId: (await this.workspaceUserRepository.findWhere({ userId })).id,
+      workspace: {
+        connect: {
+          id: workspaceId,
+        },
+      },
+      owner: {
+        connect: {
+          userId_workspaceId: {
+            userId: ownerId,
+            workspaceId,
+          },
+        },
+      },
     };
 
     const result = await this.categoryRepository.create(category);
+    const { userId: workspaceAdminId } = (await this.workspaceUserRepository.findWhere({
+      workspaceId,
+      workspaceUserRole: {
+        role: RoleName.ADMIN,
+      },
+    }));
+
+    for (const userId of [ownerId, workspaceAdminId]) {
+      if (userId) {
+        await this.permissionsService.setPermissionGroup(
+          PermissionGroup.CATEGORIES,
+          { categoryId: result.id },
+          {
+            userId,
+            workspaceId,
+          }
+        );
+      }
+    }
     return this.categoryMapper.getCategory(result);
   }
 
@@ -44,7 +76,8 @@ export class CategoryService {
   }
 
   async deleteById (id: string) {
-    const result = this.categoryRepository.deleteById(id);
+    const result = await this.categoryRepository.deleteById(id);
+    await this.permissionsService.deletePermissions(result.id);
     return this.categoryMapper.getCategory(result);
   }
 

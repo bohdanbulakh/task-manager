@@ -7,9 +7,10 @@ import { Prisma, Workspace } from '@prisma/client';
 export class WorkspaceRepository implements Repository<Workspace> {
   constructor (private prisma: PrismaService) {}
 
-  async findMany (where?: Prisma.WorkspaceWhereInput) {
+  async findMany (where?: Prisma.WorkspaceWhereInput, include?: Prisma.WorkspaceInclude) {
     return this.prisma.workspace.findMany({
       where,
+      include,
     });
   }
 
@@ -19,8 +20,11 @@ export class WorkspaceRepository implements Repository<Workspace> {
     });
   }
 
-  async create (data: Prisma.WorkspaceCreateInput) {
-    return this.prisma.workspace.create({ data });
+  async create (data: Prisma.WorkspaceCreateInput | Prisma.WorkspaceUncheckedCreateInput, include?: Prisma.WorkspaceInclude) {
+    return this.prisma.workspace.create({
+      data,
+      include,
+    });
   }
 
   async updateById (id: string, data: Prisma.WorkspaceUpdateInput, include?: Prisma.WorkspaceInclude) {

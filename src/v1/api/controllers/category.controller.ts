@@ -10,6 +10,8 @@ import { CurrentUser } from '../decorators/user.decorator';
 import { JwtGuard } from '../../security/guards/jwt.guard';
 import { ApiEndpoint } from '../../utils/documentation/api-endpoint.decorator';
 import { WorkspaceByIdPipe } from '../pipes/workspace-by-id.pipe';
+import { Permissions } from '../../security/permissions';
+import { WorkspaceWithUserPipe } from '../pipes/workspace-with-user.pipe';
 
 @ApiTags('Category')
 @Controller({
@@ -57,13 +59,14 @@ export class CategoryController {
 
     InvalidEntityPropertyException:
       Workspace with such id not found
+      Workspace with such user not found
 
     UnauthorizedException:
       Unauthorized`,
   })
   @Post()
   async create (
-    @CurrentUser('id') userId: string,
+    @CurrentUser('id', WorkspaceWithUserPipe) userId: string,
     @Body(WorkspaceByIdPipe) body: CreateCategoryDto
   ) {
     return this.categoryService.create(userId, body);
@@ -71,7 +74,7 @@ export class CategoryController {
 
   @ApiEndpoint({
     summary: 'Update category by id',
-    guards: JwtGuard,
+    permissions: Permissions.CATEGORIES_$CATEGORYID_UPDATE,
     params: {
       name: 'categoryId',
       description: 'Id of the category',
@@ -88,7 +91,10 @@ export class CategoryController {
       Workspace with such id not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Patch('/:categoryId')
   async updateById (
@@ -100,7 +106,7 @@ export class CategoryController {
 
   @ApiEndpoint({
     summary: 'Delete category by id',
-    guards: JwtGuard,
+    permissions: Permissions.CATEGORIES_$CATEGORYID_DELETE,
     params: {
       name: 'categoryId',
       description: 'Id of the category',
@@ -111,7 +117,10 @@ export class CategoryController {
       Category with such id not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Delete('/:categoryId')
   async deleteById (@Param('categoryId', CategoryByIdPipe) categoryId: string) {

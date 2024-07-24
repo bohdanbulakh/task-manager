@@ -11,9 +11,10 @@ export class WorkspaceUserRepository implements Repository<WorkspaceUser> {
     return this.prisma.workspaceUser.findMany();
   }
 
-  async findWhere (where?: Prisma.WorkspaceUserWhereInput) {
+  async findWhere (where?: Prisma.WorkspaceUserWhereInput, include?: Prisma.WorkspaceUserInclude) {
     return this.prisma.workspaceUser.findFirst({
       where,
+      include,
     });
   }
 
@@ -38,14 +39,12 @@ export class WorkspaceUserRepository implements Repository<WorkspaceUser> {
   }
 
   async updateUniqueWhere (
-    where: Prisma.WorkspaceUserUserIdWorkspaceIdCompoundUniqueInput,
+    where: Prisma.WorkspaceUserWhereUniqueInput,
     data: Prisma.WorkspaceUserUpdateInput,
     include?: Prisma.WorkspaceUserInclude
   ) {
     return this.prisma.workspaceUser.update({
-      where: {
-        userId_workspaceId: where,
-      },
+      where,
       data,
       include,
     });

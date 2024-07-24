@@ -4,14 +4,15 @@ import { AuthService } from '../api/services/auth.service';
 import { LocalStrategy } from '../security/strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { UniqueUsernamePipe } from '../api/pipes/unique-username.pipe';
 import { JwtStrategy } from '../security/strategies/jwt.strategy';
 import { RefreshStrategy } from '../security/strategies/refresh.strategy';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { PermissionsModule } from './permissions.module';
 import { RefreshMiddleware } from '../api/middleware/refresh.middleware';
 
 @Module({
   imports: [
+    PermissionsModule,
     PassportModule,
     ThrottlerModule.forRoot({
       throttlers: [{
@@ -30,14 +31,12 @@ import { RefreshMiddleware } from '../api/middleware/refresh.middleware';
     LocalStrategy,
     JwtStrategy,
     RefreshStrategy,
-    UniqueUsernamePipe,
-    ThrottlerGuard,
   ],
 })
 export class AuthModule implements NestModule {
   configure (consumer: MiddlewareConsumer): any {
     consumer
       .apply(RefreshMiddleware)
-      .forRoutes('auth');
+      .forRoutes(AuthController);
   }
 }

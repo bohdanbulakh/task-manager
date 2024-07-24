@@ -2,19 +2,19 @@ import { WorkspaceRepository } from '../../database/repositories/workspace.repos
 import { CreateWorkspaceDto } from '../dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
 import { WorkspaceUserRepository } from '../../database/repositories/workspace-user.repository';
-import { WorkspaceUserRoles } from '@prisma/client';
+import { RoleName } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { EntityAlreadyExistsException } from '../../exceptions/entity-already-exists.exception';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
-import { InvalidEntityPropertyException } from '../../exceptions/invalid-entity-property.exception';
+import { PermissionGroup, PermissionsService } from './permissions.service';
 
 @Injectable()
 export class WorkspaceService {
   constructor (
     private workspaceRepository: WorkspaceRepository,
     private workspaceUserRepository: WorkspaceUserRepository,
-  ) {
-  }
+    private permissionsService: PermissionsService,
+  ) {}
 
   async findAll () {
     const workspaces = await this.workspaceRepository.findMany();
@@ -26,13 +26,16 @@ export class WorkspaceService {
   }
 
   async create (userId: string, data: CreateWorkspaceDto) {
-    const workspace = await this.workspaceRepository.create(data);
-    await this.workspaceUserRepository.create({
-      role: WorkspaceUserRoles.ADMIN,
-      userId,
-      workspaceId: workspace.id,
+    const workspace = await this.workspaceRepository.create({
+      ...data,
+      workspaceUsers: {
+        create: {
+          userId,
+        },
+      },
     });
 
+    await this.changeUserRole(userId, workspace.id, { role: RoleName.ADMIN });
     return workspace;
   }
 
@@ -44,32 +47,27 @@ export class WorkspaceService {
     return this.workspaceRepository.deleteById(id);
   }
 
-  private async getUserWorkspaces (userId: string) {
-    return this.workspaceRepository.findMany(
+  async getUserWorkspacesWithRoles (userId: string) {
+    const workspaces = await this.workspaceRepository.findMany(
       {
         workspaceUsers: {
           some: { userId },
         },
       },
+      {
+        workspaceUsers: {
+          where: { userId },
+          include: { workspaceUserRole: true },
+        },
+      }
     );
-  }
 
-  private async getUserWorkspaceRole (userId: string, workspaceId: string) {
-    const workspaceUser = await this.workspaceUserRepository.findWhere({
-      userId,
-      workspaceId,
-    });
-    return workspaceUser.role;
-  }
+    for (const workspace of workspaces) {
+      workspace['role'] = workspace.workspaceUsers[0]['workspaceUserRole']?.role;
+      delete workspace.workspaceUsers;
+    }
 
-  async getUserWorkspacesWithRoles (userId: string) {
-    const workspaces = await this.getUserWorkspaces(userId);
-    const result = await Promise.all(workspaces.map(async (workspace) => {
-      workspace['role'] = await this.getUserWorkspaceRole(userId, workspace.id);
-      return workspace;
-    }));
-
-    return { workspaces: result };
+    return { workspaces };
   }
 
   private async checkWorkspaceUser (userId: string, workspaceId: string) {
@@ -77,12 +75,6 @@ export class WorkspaceService {
       userId,
       workspaceId,
     });
-  }
-
-  async userHasWorkspace (userId: string, workspaceId: string) {
-    if (!workspaceId && userId || !await this.checkWorkspaceUser(userId, workspaceId)) {
-      throw new InvalidEntityPropertyException('Workspace', 'user');
-    }
   }
 
   async joinWorkspace (userId: string, workspaceId: string) {
@@ -93,47 +85,95 @@ export class WorkspaceService {
     const workspaceUser = await this.workspaceUserRepository.create({
       userId,
       workspaceId,
-      role: WorkspaceUserRoles.USER,
-    }, { workspace: true });
+    },
+    {
+      workspace: true,
+      workspaceUserRole: true,
+    });
 
+    await this.changeUserRole(userId, workspaceId, { role: RoleName.USER });
     return {
       ...workspaceUser.workspace,
-      role: workspaceUser.role,
+      role: RoleName.USER,
     };
   }
 
-  async changeUserRole (userId: string, workspaceId: string, data: UpdateUserRoleDto) {
-    await this.userHasWorkspace(userId, workspaceId);
-
+  async changeUserRole (userId: string, workspaceId: string, { role }: UpdateUserRoleDto) {
     const workspaceUser = await this.workspaceUserRepository.updateUniqueWhere(
       {
+        userId_workspaceId: {
+          userId,
+          workspaceId,
+        },
+      },
+      {
+        workspaceUserRole: {
+          upsert: {
+            where: {
+              workspaceUser: {
+                userId,
+                workspaceId,
+              },
+            },
+            create: { role },
+            update: { role },
+          },
+        },
+      },
+      {
+        workspace: true,
+        workspaceUserRole: true,
+      },
+    );
+
+    if (role === RoleName.ADMIN) {
+      await this.permissionsService.setPermissionGroup(PermissionGroup.WORKSPACES, { workspaceId }, {
         userId,
         workspaceId,
-      },
-      data,
-      { workspace: true },
-    );
+      });
+    } else await this.permissionsService.deletePermissions('workspaces', { userId, workspaceId });
 
     return {
       ...workspaceUser.workspace,
-      role: workspaceUser.role,
+      role,
     };
   }
 
   async leaveWorkspace (userId: string, workspaceId: string) {
-    await this.userHasWorkspace(userId, workspaceId);
-
     const workspaceUser = await this.workspaceUserRepository.deleteUniqueWhere(
       {
         userId,
         workspaceId,
       },
-      { workspace: true },
+      {
+        workspace: true,
+        workspaceUserRole: true,
+      },
     );
 
     return {
       ...workspaceUser.workspace,
-      role: workspaceUser.role,
+      role: workspaceUser.workspaceUserRole.role,
     };
+  }
+
+  async getTaskWorkspace (taskId: string) {
+    return (await this.workspaceRepository.findMany({
+      tasks: {
+        some: {
+          id: taskId,
+        },
+      },
+    }))[0]?.id;
+  }
+
+  async getCategoryWorkspace (categoryId: string) {
+    return (await this.workspaceRepository.findMany({
+      categories: {
+        some: {
+          id: categoryId,
+        },
+      },
+    }))[0]?.id;
   }
 }

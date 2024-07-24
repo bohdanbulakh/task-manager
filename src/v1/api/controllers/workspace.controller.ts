@@ -12,6 +12,8 @@ import { WorkspaceResponse } from '../responses/workspace.response';
 import { WorkspaceWithUserRoleResponse } from '../responses/workspace-with-user-role.response';
 import { UserByIdPipe } from '../pipes/user-by-id.pipe';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
+import { Permissions } from '../../security/permissions';
+import { WorkspaceWithUserPipe } from '../pipes/workspace-with-user.pipe';
 
 @ApiTags('Workspaces')
 @Controller('/workspaces')
@@ -68,7 +70,7 @@ export class WorkspaceController {
 
   @ApiEndpoint({
     summary: 'Update workspace by id',
-    guards: JwtGuard,
+    permissions: Permissions.WORKSPACES_$WORKSPACEID_UPDATE,
     params: {
       name: 'workspaceId',
       description: 'Id of the workspace',
@@ -84,7 +86,10 @@ export class WorkspaceController {
       Workspace with such id not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Patch('/:workspaceId')
   async updateById (
@@ -96,7 +101,7 @@ export class WorkspaceController {
 
   @ApiEndpoint({
     summary: 'Delete workspace by id',
-    guards: JwtGuard,
+    permissions: Permissions.WORKSPACES_$WORKSPACEID_DELETE,
     params: {
       name: 'workspaceId',
       description: 'Id of the workspace',
@@ -107,7 +112,10 @@ export class WorkspaceController {
       Workspace with such id not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+      NoPermissionException:
+        You do not have permission to perform this action`,
   })
   @Delete('/:workspaceId')
   async deleteById (
@@ -118,7 +126,7 @@ export class WorkspaceController {
 
   @ApiEndpoint({
     summary: 'Join workspace by id',
-    guards: JwtGuard,
+    permissions: Permissions.WORKSPACES_$WORKSPACEID_MANAGE,
     params: [
       {
         name: 'workspaceId',
@@ -139,7 +147,10 @@ export class WorkspaceController {
       Workspace with such user already exists
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+      NoPermissionException:
+        You do not have permission to perform this action`,
   })
   @Post('/:workspaceId/user/:userId')
   async joinWorkspace (
@@ -151,7 +162,7 @@ export class WorkspaceController {
 
   @ApiEndpoint({
     summary: 'Change user role in workspace',
-    guards: JwtGuard,
+    permissions: Permissions.WORKSPACES_$WORKSPACEID_MANAGE,
     params: [
       {
         name: 'workspaceId',
@@ -171,11 +182,14 @@ export class WorkspaceController {
       Workspace with such user is not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Patch('/:workspaceId/user/:userId')
   async changeUserRole (
-    @Param('userId', UserByIdPipe) userId: string,
+    @Param('userId', UserByIdPipe, WorkspaceWithUserPipe) userId: string,
     @Param('workspaceId', WorkspaceByIdPipe) workspaceId: string,
     @Body() body: UpdateUserRoleDto,
   ) {
@@ -184,7 +198,7 @@ export class WorkspaceController {
 
   @ApiEndpoint({
     summary: 'Remove user from workspace',
-    guards: JwtGuard,
+    permissions: Permissions.WORKSPACES_$WORKSPACEID_MANAGE,
     params: [
       {
         name: 'workspaceId',
@@ -203,11 +217,14 @@ export class WorkspaceController {
       Workspace with such user is not found
 
     UnauthorizedException:
-      Unauthorized`,
+      Unauthorized
+
+    NoPermissionException:
+      You do not have permission to perform this action`,
   })
   @Delete('/:workspaceId/user/:userId')
   async leaveWorkspace (
-    @Param('userId', UserByIdPipe) userId: string,
+    @Param('userId', UserByIdPipe, WorkspaceWithUserPipe) userId: string,
     @Param('workspaceId', WorkspaceByIdPipe) workspaceId: string,
   ) {
     return this.workspaceService.leaveWorkspace(userId, workspaceId);
