@@ -8,6 +8,8 @@ import { WorkspaceModule } from './modules/workspace.module';
 import { UserModule } from './modules/user.module';
 import { PermissionsModule } from './modules/permissions.module';
 import { PipesModule } from './modules/pipes.module';
+import { MainConfigModule } from './modules/main-config.module';
+import MainConfig from './config/main.config';
 
 @Module({
   imports: [
@@ -20,6 +22,10 @@ import { PipesModule } from './modules/pipes.module';
     WorkspaceModule,
     CategoryModule,
     TaskModule,
+    MainConfigModule.forRoot({
+      isGlobal: true,
+      load: [MainConfig],
+    }),
   ],
 })
 export class AppModule {}

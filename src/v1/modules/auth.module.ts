@@ -9,9 +9,11 @@ import { RefreshStrategy } from '../security/strategies/refresh.strategy';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PermissionsModule } from './permissions.module';
 import { RefreshMiddleware } from '../api/middleware/refresh.middleware';
+import { MainConfigModule } from './main-config.module';
 
 @Module({
   imports: [
+    MainConfigModule,
     PermissionsModule,
     PassportModule,
     ThrottlerModule.forRoot({
@@ -20,10 +22,7 @@ import { RefreshMiddleware } from '../api/middleware/refresh.middleware';
         limit: 1,
       }],
     }),
-    JwtModule.register({
-      global: true,
-      secret: process.env.SECRET,
-    }),
+    JwtModule.register({ global: true }),
   ],
   controllers: [AuthController],
   providers: [

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { JwtPayloadDto } from '../dto/jwt-payload.dto';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../dto/register.dto';
 import { UserRepository } from '../../database/repositories/user.repository';
 import { Prisma, Session, User } from '@prisma/client';
-import * as process from 'process';
 import { PrismaService } from '../../database/prisma.service';
+import { MainConfigService } from '../../config/main-config.service';
 
 const MINUTE = 1000 * 60;
 
@@ -14,8 +14,9 @@ const MINUTE = 1000 * 60;
 export class AuthService {
   constructor (
     private jwtService: JwtService,
-    public userRepository: UserRepository,
+    private userRepository: UserRepository,
     private prisma: PrismaService,
+    private mainConfigService: MainConfigService,
   ) {}
 
   async register (body: RegisterDto) {
@@ -52,9 +53,13 @@ export class AuthService {
     const payload: JwtPayloadDto = {
       sub: userId,
     };
+    const options: JwtSignOptions = {
+      secret: this.mainConfigService.secret,
+      expiresIn: this.mainConfigService.accessTtl,
+    };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: process.env.ACCESS_TTL });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: process.env.REFRESH_TTL });
+    const accessToken = this.jwtService.sign(payload, options);
+    const refreshToken = this.jwtService.sign(payload, options);
 
     return {
       accessToken,
@@ -82,7 +87,7 @@ export class AuthService {
     };
 
     const tokens = (await this.userRepository.findById(user.id, include)).sessions.map((session: Session) => session.token);
-    for (let i = 0; tokens.length - i >= +process.env.SESSIONS; i++) {
+    for (let i = 0; tokens.length - i >= this.mainConfigService.sessionsAmount; i++) {
       await this.userRepository.updateById(user.id, {
         sessions: {
           delete: {
