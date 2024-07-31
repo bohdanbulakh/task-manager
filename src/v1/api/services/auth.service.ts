@@ -53,13 +53,15 @@ export class AuthService {
     const payload: JwtPayloadDto = {
       sub: userId,
     };
-    const options: JwtSignOptions = {
+
+    const accessToken = this.jwtService.sign(payload, {
       secret: this.mainConfigService.secret,
       expiresIn: this.mainConfigService.accessTtl,
-    };
-
-    const accessToken = this.jwtService.sign(payload, options);
-    const refreshToken = this.jwtService.sign(payload, options);
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.mainConfigService.secret,
+      expiresIn: this.mainConfigService.refreshTtl,
+    });
 
     return {
       accessToken,
